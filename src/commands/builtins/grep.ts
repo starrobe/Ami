@@ -27,7 +27,7 @@ export const grepCommand: CommandHandler = (ctx, parsed) => {
 
   function searchFile(filePath: string, content: string) {
     const lines = content.split('\n');
-    const flags = ignoreCase ? 'gi' : 'g';
+    const flags = ignoreCase ? 'i' : '';
     let regex: RegExp;
     try {
       regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
@@ -56,7 +56,7 @@ export const grepCommand: CommandHandler = (ctx, parsed) => {
   }
 
   if (node.type === 'file') {
-    searchFile(target, node.content);
+    searchFile(path, node.content);
   } else if (node.type === 'dir') {
     searchDir(node, path);
   }
