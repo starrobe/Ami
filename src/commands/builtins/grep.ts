@@ -58,6 +58,9 @@ export const grepCommand: CommandHandler = (ctx, parsed) => {
   if (node.type === 'file') {
     searchFile(path, node.content);
   } else if (node.type === 'dir') {
+    if (!recursive) {
+      return { output: `grep: ${target}: Is a directory\r\n` };
+    }
     searchDir(node, path);
   }
 

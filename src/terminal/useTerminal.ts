@@ -51,11 +51,16 @@ export function useTerminal() {
   const prevCwdRef = useRef('/home/user');
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Apply theme changes to the terminal instance
+  // Apply theme changes to the terminal instance and page chrome
   useEffect(() => {
+    const theme = getTheme(state.theme);
+
+    // Page background and titlebar
+    document.documentElement.style.setProperty('--ami-bg', theme.background);
+    document.documentElement.style.setProperty('--ami-titlebar-bg', theme.black);
+
     const term = xtermRef.current;
     if (!term) return;
-    const theme = getTheme(state.theme);
     term.options.theme = {
       background: theme.background,
       foreground: theme.foreground,
@@ -103,6 +108,11 @@ export function useTerminal() {
       ...prev,
       history: historyRef.current,
     }));
+
+    // Clear rich content for non-cat commands
+    if (parsed.cmd !== 'cat') {
+      setRichContent(null);
+    }
 
     const registry = createRegistry();
 
@@ -200,6 +210,7 @@ export function useTerminal() {
 
       // Handle Ctrl+L (clear / form feed)
       if (data === '\x0c') {
+        setRichContent(null);
         term.clear();
         writePrompt();
         return;
@@ -341,6 +352,14 @@ export function useTerminal() {
     };
     window.addEventListener('resize', handleResize);
 
+    // ResizeObserver for container size changes (e.g. rich content panel)
+    const resizeObserver = new ResizeObserver(() => {
+      fitAddon.fit();
+    });
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
     // Write welcome message
     term.write(`\x1b[1;32m
    ___           _
@@ -360,10 +379,11 @@ Type \x1b[1;32mhelp\x1b[0m to see available commands.
     writePrompt();
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [executeCommand, writePrompt]);
+  }, [executeCommand, writePrompt, setRichContent]);
 
   return {
     containerRef,

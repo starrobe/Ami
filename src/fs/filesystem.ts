@@ -53,7 +53,6 @@ export function resolvePath(_fs: DirNode, cwd: string, target: string): string {
   if (!target || target === '') return cwd;
 
   if (target === '~') return '/home/user';
-  if (target === '-') return '/home/user'; // previous dir handled in cd command
   if (target === '/') return '/';
 
   // Absolute path

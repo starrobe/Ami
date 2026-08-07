@@ -1,5 +1,5 @@
 import type { CommandHandler } from '../../types';
-import { getTheme, getThemeNames } from '../../themes/themes';
+import { getThemeNames } from '../../themes/themes';
 
 export const themeCommand: CommandHandler = (ctx, parsed) => {
   if (parsed.args.length === 0) {
@@ -10,8 +10,7 @@ export const themeCommand: CommandHandler = (ctx, parsed) => {
   }
 
   const name = parsed.args[0];
-  const theme = getTheme(name);
-  if (!theme || !getThemeNames().includes(name)) {
+  if (!getThemeNames().includes(name)) {
     return { output: `theme: ${name}: theme not found. Available: ${getThemeNames().join(', ')}\r\n` };
   }
 

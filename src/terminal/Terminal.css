@@ -8,7 +8,7 @@ html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: #0D1117;
+  background: var(--ami-bg, #0D1117);
 }
 
 .terminal-shell {
@@ -16,14 +16,14 @@ html, body, #root {
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background: #0D1117;
+  background: var(--ami-bg, #0D1117);
 }
 
 .terminal-titlebar {
   display: flex;
   align-items: center;
   height: 32px;
-  background: #161B22;
+  background: var(--ami-titlebar-bg, #161B22);
   border-bottom: 1px solid #30363D;
   padding: 0 12px;
   user-select: none;
@@ -76,7 +76,7 @@ html, body, #root {
 }
 
 .terminal-rich {
-  background: #0D1117;
+  background: var(--ami-bg, #0D1117);
   border-top: 1px solid #30363D;
   padding: 8px 24px 16px 24px;
   max-height: 50%;
