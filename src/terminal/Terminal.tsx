@@ -1,22 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTerminal } from './useTerminal';
 import './Terminal.css';
 
 export default function Terminal() {
   const { containerRef, initTerminal, state } = useTerminal();
-  const initCalledRef = useRef(false);
 
   useEffect(() => {
-    if (initCalledRef.current) return;
-    initCalledRef.current = true;
-
     const cleanupPromise = initTerminal();
     return () => {
       cleanupPromise.then((fn) => {
         if (typeof fn === 'function') fn();
       });
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="terminal-shell">
