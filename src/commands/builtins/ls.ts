@@ -1,0 +1,37 @@
+import type { CommandHandler } from '../../types';
+import { resolvePath, getNode, listDir } from '../../fs/filesystem';
+
+export const lsCommand: CommandHandler = (ctx, parsed) => {
+  const target = parsed.args[0] || '.';
+  const showHidden = parsed.flags.includes('a');
+  const longFormat = parsed.flags.includes('l');
+  const path = resolvePath(ctx.fs, ctx.cwd, target);
+  const node = getNode(ctx.fs, path);
+
+  if (!node) {
+    return { output: `ls: cannot access '${target}': No such file or directory\r\n` };
+  }
+
+  if (node.type !== 'dir') {
+    // It's a file — just print its name
+    const name = target.split('/').pop() || target;
+    return { output: name + '\r\n' };
+  }
+
+  let entries = listDir(ctx.fs, path);
+  if (!showHidden) {
+    entries = entries.filter(e => !e.startsWith('.'));
+  }
+
+  if (longFormat) {
+    let output = '';
+    for (const entry of entries) {
+      const isDir = node.children[entry].type === 'dir';
+      const prefix = isDir ? 'd' : '-';
+      output += `${prefix}rwxr-xr-x  user  user    4096 Jan  1 12:00 ${entry}\r\n`;
+    }
+    return { output };
+  }
+
+  return { output: entries.join('  ') + '\r\n' };
+};
