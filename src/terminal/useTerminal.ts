@@ -140,7 +140,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [setCwd, setTheme, setRichContent, writePrompt]);
+  }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
 
   const initTerminal = useCallback(async () => {
     const { Terminal } = await import('xterm');

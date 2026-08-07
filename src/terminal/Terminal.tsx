@@ -12,7 +12,7 @@ export default function Terminal() {
         if (typeof fn === 'function') fn();
       });
     };
-  }, []);
+  }, [initTerminal]);
 
   return (
     <div className="terminal-shell">
