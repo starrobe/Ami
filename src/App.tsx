@@ -1,3 +1,5 @@
+import Terminal from './terminal/Terminal';
+
 export default function App() {
-  return <div>Terminal loading...</div>;
+  return <Terminal />;
 }

@@ -1,0 +1,84 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #0D1117;
+}
+
+.terminal-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: #0D1117;
+}
+
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: #161B22;
+  border-bottom: 1px solid #30363D;
+  padding: 0 12px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.titlebar-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot-red { background: #FF5F56; }
+.dot-yellow { background: #FFBD2E; }
+.dot-green { background: #27C93F; }
+
+.titlebar-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #8B949E;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.titlebar-spacer {
+  flex: 1;
+}
+
+.terminal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-xterm {
+  flex: 1;
+  overflow: hidden;
+}
+
+.terminal-xterm .xterm {
+  height: 100%;
+  padding: 8px;
+}
+
+.terminal-rich {
+  background: #0D1117;
+  border-top: 1px solid #30363D;
+  padding: 8px 24px 16px 24px;
+  max-height: 50%;
+  overflow-y: auto;
+}
