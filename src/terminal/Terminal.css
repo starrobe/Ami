@@ -74,6 +74,18 @@ html, body, #root {
   /* xterm.js manages its own internal dimensions */
 }
 
+.xterm .xterm-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.xterm .xterm-viewport {
+  scrollbar-width: none;
+}
+
+.xterm .xterm-scrollable-element > .scrollbar {
+  display: none !important;
+}
+
 .terminal-rich {
   background: var(--ami-bg, #0a0a0a);
   border-top: 1px solid #30363D;
