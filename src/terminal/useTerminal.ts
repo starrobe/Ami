@@ -400,8 +400,9 @@ export function useTerminal() {
           // Start new cycle
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
+            // Show matches below current line, then restore input on a new line
             term.write('\r\n' + matchList.join('  '));
-            writePrompt();
+            term.write('\r\n');
             term.write(buffer);
             if (partial.length > 0) {
               term.write('\b \b'.repeat(partial.length));
