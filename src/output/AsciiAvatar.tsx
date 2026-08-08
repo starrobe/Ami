@@ -52,7 +52,6 @@ export default function AsciiAvatar({ url, maxWidth = 120 }: Props) {
           width: '100%',
           maxWidth: '350px',
           height: 'auto',
-          imageRendering: 'pixelated',
         }}
       />
     </div>
