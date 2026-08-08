@@ -301,14 +301,22 @@ export function useTerminal() {
       // Handle Tab (autocomplete)
       if (data === '\t') {
         const buffer = inputBufferRef.current;
-        const tokens = buffer.trim().split(/\s+/);
-        const isFirstToken = buffer.length === 0 || (tokens.length <= 1 && !buffer.endsWith(' '));
-        const lastToken = tokens.length > 0 ? tokens[tokens.length - 1] : '';
+        if (buffer.length === 0) return;
 
-        if (isFirstToken) {
+        // Split without trimming to detect trailing-space empty token
+        const rawTokens = buffer.split(/\s+/);
+        const tokens = rawTokens.filter(t => t.length > 0);
+        const trailingSpace = /\s$/.test(buffer);
+
+        // First word is always the command; anything after is path
+        const isCommand = tokens.length === 0 || (tokens.length === 1 && !trailingSpace);
+        const partial = trailingSpace ? '' : (tokens.length > 0 ? tokens[tokens.length - 1] : '');
+
+        if (isCommand) {
           // --- Command name completion ---
           const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
-          const prefix = lastToken.toLowerCase();
+          const prefix = partial.toLowerCase();
+          if (!prefix) return;
           const matching = cmdNames.filter(c => c.startsWith(prefix));
 
           if (matching.length === 1) {
@@ -340,8 +348,7 @@ export function useTerminal() {
         } else {
           // --- Path completion ---
           try {
-            // Get the directory part and the prefix part
-            const pathSegs = lastToken.split('/');
+            const pathSegs = partial.split('/');
             const prefix = pathSegs[pathSegs.length - 1] || '';
             const dirPart = pathSegs.slice(0, -1).join('/');
             const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
@@ -350,16 +357,17 @@ export function useTerminal() {
             if (dirNode && dirNode.type === 'dir') {
               const children = Object.keys(dirNode.children);
               const matching = children.filter(c => c.startsWith(prefix));
+              if (matching.length === 0) return;
 
               if (matching.length === 1) {
                 const entry = dirNode.children[matching[0]];
                 const suffix = entry.type === 'dir' ? '/' : '';
                 const basePath = pathSegs.slice(0, -1).join('/');
                 const fullMatch = (basePath ? basePath + '/' : '') + matching[0] + suffix;
-                const toInsert = fullMatch.slice(lastToken.length);
+                const toInsert = fullMatch.slice(partial.length);
                 inputBufferRef.current += toInsert;
                 term.write(toInsert);
-              } else if (matching.length > 1) {
+              } else {
                 // Find common prefix
                 let common = matching[0];
                 for (let i = 1; i < matching.length; i++) {
