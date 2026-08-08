@@ -390,16 +390,20 @@ export function useTerminal() {
 
         // Check if continuing a previous cycle
         if (prev && buffer.startsWith(prev.baseBuffer)) {
-          // Erase previous completion
-          const eraseLen = prev.lastWritten.length;
-          term.write('\b \b'.repeat(eraseLen));
-
-          // Advance index
+          // Erase previous + prepare to write new
+          const erase = '\b \b'.repeat(prev.lastWritten.length);
           prev.index = (prev.index + 1) % prev.matches.length;
-
-          // Restore buffer to base
           inputBufferRef.current = prev.baseBuffer;
           cursorPosRef.current = prev.baseBuffer.length;
+
+          // Write erase + new match in one call to avoid cursor flicker
+          const chosen = prev.matches[prev.index];
+          const fullText = prev.prefix + prev.suffixFn(chosen);
+          inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
+          cursorPosRef.current = inputBufferRef.current.length;
+          term.write(erase + fullText);
+          prev.lastWritten = fullText;
+          return;
         } else {
           // --- Build new completion ---
           tabCycle.current = null;
@@ -455,11 +459,6 @@ export function useTerminal() {
             return;
           }
 
-          // Erase the partial from terminal display before writing match
-          if (partial.length > 0) {
-            term.write('\b \b'.repeat(partial.length));
-          }
-
           // Show match list below prompt, keep cursor in place
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
@@ -476,20 +475,21 @@ export function useTerminal() {
             lastWritten: '',
             suffixFn: suffixFn!,
           };
-        }
 
-        // Write the cycled match (or the only match)
-        const cycle = tabCycle.current!;
-        const chosen = cycle.matches[cycle.index];
-        const fullText = cycle.prefix + cycle.suffixFn(chosen);
-        inputBufferRef.current = cycle.baseBuffer.slice(0, cycle.prefixStart) + fullText;
-        cursorPosRef.current = inputBufferRef.current.length;
-        term.write(fullText);
-        cycle.lastWritten = fullText;
+          // Write the first match — erase partial + write in one call to avoid flicker
+          const cycle = tabCycle.current!;
+          const chosen = cycle.matches[cycle.index];
+          const fullText = cycle.prefix + cycle.suffixFn(chosen);
+          const erase = partial.length > 0 ? '\b \b'.repeat(partial.length) : '';
+          inputBufferRef.current = cycle.baseBuffer.slice(0, cycle.prefixStart) + fullText;
+          cursorPosRef.current = inputBufferRef.current.length;
+          term.write(erase + fullText);
+          cycle.lastWritten = fullText;
 
-        // Single match or common prefix — done
-        if (cycle.matches.length === 1) {
-          tabCycle.current = null;
+          // Single match — done
+          if (cycle.matches.length === 1) {
+            tabCycle.current = null;
+          }
         }
         return;
       }
