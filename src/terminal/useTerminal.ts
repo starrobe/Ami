@@ -76,6 +76,7 @@ export function useTerminal() {
     const displayPath = cwdRef.current.replace('/home/user', '~');
     term.write('\r\n\x1b[1;32muser@ami\x1b[0m:\x1b[1;34m' + displayPath + '\x1b[0m$ ');
     term.scrollToBottom();
+    term.focus();
   }, []);
 
   const appendOutput = useCallback((text: string) => {
@@ -157,6 +158,7 @@ export function useTerminal() {
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
 
+    await import('@xterm/xterm/css/xterm.css');
     const { Terminal } = await import('@xterm/xterm');
     const { FitAddon } = await import('@xterm/addon-fit');
     const { WebLinksAddon } = await import('@xterm/addon-web-links');
