@@ -67,11 +67,14 @@ export function useTerminal() {
 
   // Tab-completion cycle state
   const tabCycle = useRef<{
+    baseBuffer: string;
     matches: string[];
     index: number;
     prefix: string;
-    prefixStart: number; // position in buffer where the partial token starts
+    prefixStart: number;
     isCommand: boolean;
+    lastWritten: string;
+    suffixFn: (m: string) => string;
   } | null>(null);
 
   // Apply theme changes to the terminal instance and page chrome
@@ -330,101 +333,105 @@ export function useTerminal() {
         const buffer = inputBufferRef.current;
         if (buffer.length === 0) return;
 
-        const rawTokens = buffer.split(/\s+/);
-        const tokens = rawTokens.filter(t => t.length > 0);
-        const trailingSpace = /\s$/.test(buffer);
-        const isCommand = tokens.length === 0 || (tokens.length === 1 && !trailingSpace);
-        const partial = trailingSpace ? '' : (tokens.length > 0 ? tokens[tokens.length - 1] : '');
-        // Position in buffer where the partial token starts
-        const prefixStart = buffer.length - partial.length;
-
-        // Build match list
-        let matchList: string[] = [];
-        let suffixForMatch: ((m: string) => string) | null = null;
-
-        if (isCommand) {
-          const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
-          const prefix = partial.toLowerCase();
-          matchList = cmdNames.filter(c => c.startsWith(prefix));
-          suffixForMatch = () => ' ';
-        } else {
-          try {
-            const pathSegs = partial.split('/');
-            const prefix = pathSegs[pathSegs.length - 1] || '';
-            const dirPart = pathSegs.slice(0, -1).join('/');
-            const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
-            const dirNode = getNode(fsRef.current, resolvedDir);
-            if (dirNode && dirNode.type === 'dir') {
-              const children = Object.keys(dirNode.children);
-              matchList = children.filter(c => c.startsWith(prefix));
-              const basePath = pathSegs.slice(0, -1).join('/');
-              suffixForMatch = (m: string) => {
-                const entry = dirNode.children[m];
-                const sfx = entry.type === 'dir' ? '/' : '';
-                const fullMatch = (basePath ? basePath + '/' : '') + m + sfx;
-                return fullMatch.slice(partial.length);
-              };
-            }
-          } catch { /* ignore */ }
-        }
-
-        if (matchList.length === 0) return;
-
-        // Single match — just complete it
-        if (matchList.length === 1) {
-          const toInsert = suffixForMatch!(matchList[0]);
-          inputBufferRef.current += toInsert;
-          term.write(toInsert);
-          tabCycle.current = null;
-          return;
-        }
-
-        // Check if we're continuing a previous cycle
         const prev = tabCycle.current;
-        const sameCycle = prev && prev.prefix === partial && prev.isCommand === isCommand;
 
-        if (sameCycle) {
-          // Advance to next match
-          prev.index = (prev.index + 1) % matchList.length;
+        // Check if continuing a previous cycle
+        if (prev && buffer.startsWith(prev.baseBuffer)) {
+          // Erase previous completion
+          const eraseLen = prev.lastWritten.length;
+          term.write('\b \b'.repeat(eraseLen));
+
+          // Advance index
+          prev.index = (prev.index + 1) % prev.matches.length;
+
+          // Restore buffer to base
+          inputBufferRef.current = prev.baseBuffer;
         } else {
-          // New cycle: show all matches, start at first match
+          // --- Build new completion ---
+          tabCycle.current = null;
+
+          const rawTokens = buffer.split(/\s+/);
+          const tokens = rawTokens.filter(t => t.length > 0);
+          const trailingSpace = /\s$/.test(buffer);
+          const isCommand = tokens.length === 0 || (tokens.length === 1 && !trailingSpace);
+          const partial = trailingSpace ? '' : (tokens.length > 0 ? tokens[tokens.length - 1] : '');
+          const prefixStart = buffer.length - partial.length;
+
+          let matchList: string[] = [];
+          let buildSuffix: ((m: string) => string) | null = null;
+
+          if (isCommand) {
+            const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
+            const prefix = partial.toLowerCase();
+            matchList = cmdNames.filter(c => c.startsWith(prefix));
+            buildSuffix = (m: string) => m.slice(prefix.length) + ' ';
+          } else {
+            try {
+              const pathSegs = partial.split('/');
+              const prefix = pathSegs[pathSegs.length - 1] || '';
+              const dirPart = pathSegs.slice(0, -1).join('/');
+              const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
+              const dirNode = getNode(fsRef.current, resolvedDir);
+              if (dirNode && dirNode.type === 'dir') {
+                const children = Object.keys(dirNode.children);
+                matchList = children.filter(c => c.startsWith(prefix));
+                const basePath = pathSegs.slice(0, -1).join('/');
+                buildSuffix = (m: string) => {
+                  const entry = dirNode.children[m];
+                  const sfx = entry.type === 'dir' ? '/' : '';
+                  const fullMatch = (basePath ? basePath + '/' : '') + m + sfx;
+                  return fullMatch.slice(partial.length);
+                };
+              }
+            } catch { /* ignore */ }
+          }
+
+          if (matchList.length === 0) return;
+
+          // Common prefix completion (no cycling)
           const common = findCommonPrefix(matchList);
-          if (common.length > partial.length && partial.length > 0) {
-            // Has common prefix beyond what's typed — complete it first
+          if (matchList.length > 1 && common.length > partial.length && partial.length > 0) {
             const toInsert = common.slice(partial.length);
             inputBufferRef.current += toInsert;
             term.write(toInsert);
-            tabCycle.current = null;
             return;
           }
-          // No common prefix or empty partial — show matches and start cycling
-          term.write('\r\n' + matchList.join('  '));
-          writePrompt();
-          term.write(buffer);
-          prev && (tabCycle.current = null);
+
+          // Start new cycle
+          const suffixFn = buildSuffix!;
+          if (matchList.length > 1) {
+            term.write('\r\n' + matchList.join('  '));
+            writePrompt();
+            term.write(buffer);
+            if (partial.length > 0) {
+              term.write('\b \b'.repeat(partial.length));
+            }
+          }
+
           tabCycle.current = {
+            baseBuffer: buffer,
             matches: matchList,
             index: 0,
             prefix: partial,
             prefixStart,
             isCommand,
+            lastWritten: '',
+            suffixFn: suffixFn!,
           };
         }
 
-        // Replace the partial token with the cycled match
+        // Write the cycled match
         const cycle = tabCycle.current!;
-        const chosen = matchList[cycle.index];
-        const suffix = suffixForMatch!(chosen);
+        const chosen = cycle.matches[cycle.index];
+        const fullText = cycle.prefix + cycle.suffixFn(chosen);
+        inputBufferRef.current = cycle.baseBuffer.slice(0, cycle.prefixStart) + fullText;
+        term.write(fullText);
+        cycle.lastWritten = fullText;
 
-        // Erase the partial token from display
-        const eraseSeq = '\b \b'.repeat(partial.length);
-        term.write(eraseSeq);
-
-        // Update buffer: replace from prefixStart with the chosen match + suffix
-        const before = buffer.slice(0, prefixStart);
-        const after = before + chosen + suffix;
-        inputBufferRef.current = after;
-        term.write(chosen + suffix);
+        // Single match — cycle is done after writing
+        if (cycle.matches.length === 1) {
+          tabCycle.current = null;
+        }
         return;
       }
 
