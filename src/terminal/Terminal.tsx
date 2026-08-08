@@ -36,6 +36,11 @@ export default function Terminal() {
       </div>
       <div className="terminal-content">
         <div ref={containerRef} className="terminal-xterm" />
+        {state.completionHints.length > 0 && (
+          <div className="terminal-hints">
+            {state.completionHints.join('  ')}
+          </div>
+        )}
         {state.richContent && (
           <div className="terminal-rich">
             {state.richContent}

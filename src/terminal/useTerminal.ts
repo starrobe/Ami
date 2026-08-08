@@ -23,6 +23,7 @@ export interface TerminalState {
   theme: string;
   history: string[];
   richContent: ReactNode | null;
+  completionHints: string[];
 }
 
 function findCommonPrefix(strings: string[]): string {
@@ -47,6 +48,7 @@ export function useTerminal() {
     theme: 'mono',
     history: [],
     richContent: null,
+    completionHints: [],
   });
 
   // Refs to avoid stale closure in the terminal onData handler
@@ -111,6 +113,10 @@ export function useTerminal() {
 
   const setRichContent = useCallback((node: ReactNode | null) => {
     setState(prev => ({ ...prev, richContent: node }));
+  }, []);
+
+  const setCompletionHints = useCallback((hints: string[]) => {
+    setState(prev => ({ ...prev, completionHints: hints }));
   }, []);
 
   const setCwd = useCallback((path: string) => {
@@ -231,6 +237,7 @@ export function useTerminal() {
       // Reset tab-cycle state on any non-Tab/non-ShiftTab key
       if (data !== '\t' && data !== '\x1b[Z') {
         tabCycle.current = null;
+        setCompletionHints([]);
       }
 
       // Handle Enter
@@ -459,7 +466,7 @@ export function useTerminal() {
           // Show match list for multiple matches
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
-            term.write('\x1b[s\r\n' + matchList.join('  ') + '\x1b[u');
+            setCompletionHints(matchList);
           }
 
           tabCycle.current = {
