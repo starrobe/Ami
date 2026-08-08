@@ -1,4 +1,4 @@
-const CHARS = '@%#*+=-:. ';
+const CHARS = '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^\`\'. ';
 
 export function drawAsciiToCanvas(
   image: HTMLImageElement,
@@ -47,8 +47,8 @@ export function drawAsciiToCanvas(
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(x * cw, y * ch, cw, ch);
 
-      // Draw character in contrasting shade on top
-      ctx.fillStyle = brightness > 128 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+      // Draw character fully opaque for strong texture
+      ctx.fillStyle = brightness > 128 ? '#000' : '#fff';
       ctx.fillText(char, x * cw, y * ch);
     }
   }
