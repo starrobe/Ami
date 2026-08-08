@@ -324,7 +324,7 @@ export function useTerminal() {
             inputBufferRef.current += toInsert + ' ';
             term.write(toInsert + ' ');
           } else if (matching.length > 1) {
-            // Find common prefix
+            // Find common prefix and complete it
             let common = matching[0];
             for (let i = 1; i < matching.length; i++) {
               let j = 0;
@@ -337,12 +337,6 @@ export function useTerminal() {
               const toInsert = common.slice(prefix.length);
               inputBufferRef.current += toInsert;
               term.write(toInsert);
-            } else {
-              // Show matches
-              term.write('\r\n' + matching.join('  ') + '\r\n');
-              writePrompt();
-              term.write(buffer);
-              inputBufferRef.current = buffer;
             }
           }
         } else {
@@ -368,7 +362,7 @@ export function useTerminal() {
                 inputBufferRef.current += toInsert;
                 term.write(toInsert);
               } else {
-                // Find common prefix
+                // Find common prefix and complete it
                 let common = matching[0];
                 for (let i = 1; i < matching.length; i++) {
                   let j = 0;
@@ -381,12 +375,6 @@ export function useTerminal() {
                   const toInsert = common.slice(prefix.length);
                   inputBufferRef.current += toInsert;
                   term.write(toInsert);
-                } else {
-                  // Show matches
-                  term.write('\r\n' + matching.join('  ') + '\r\n');
-                  writePrompt();
-                  term.write(buffer);
-                  inputBufferRef.current = buffer;
                 }
               }
             }
