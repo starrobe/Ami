@@ -299,9 +299,9 @@ export function useTerminal() {
       }
 
       // Handle Tab (autocomplete)
-      if (data === '\t') {
+      if (data === '\t' || data === '\x09') {
         const buffer = inputBufferRef.current;
-        if (buffer.length === 0) return;
+        if (!buffer) return;
 
         // Split without trimming to detect trailing-space empty token
         const rawTokens = buffer.split(/\s+/);
