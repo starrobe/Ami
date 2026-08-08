@@ -20,10 +20,11 @@ export function drawAsciiToCanvas(
   const pixels = imageData.data;
   const pixelCount = cols * rows;
 
-  // Pass 1: brightness range
+  // Pass 1: brightness range (skip transparent pixels)
   let minBright = 255, maxBright = 0;
   for (let i = 0; i < pixelCount; i++) {
     const idx = i * 4;
+    if (pixels[idx + 3] < 128) continue; // skip transparent
     const brightness = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
     if (brightness < minBright) minBright = brightness;
     if (brightness > maxBright) maxBright = brightness;
@@ -48,10 +49,11 @@ export function drawAsciiToCanvas(
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
 
-  // Pass 2: draw characters
+  // Pass 2: draw characters (skip transparent pixels)
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const idx = (y * cols + x) * 4;
+      if (pixels[idx + 3] < 128) continue; // skip transparent
       const r = pixels[idx];
       const g = pixels[idx + 1];
       const b = pixels[idx + 2];
