@@ -24,7 +24,7 @@ export default function AsciiAvatar({ url, maxWidth = 120 }: Props) {
 
         const cols = Math.min(maxWidth, img.naturalWidth);
         const rows = Math.floor(cols * (img.naturalHeight / img.naturalWidth) * 0.5);
-        const CELL = 4;
+        const CELL = 8;
         canvas.width = cols * CELL;
         canvas.height = rows * CELL;
 
@@ -50,7 +50,7 @@ export default function AsciiAvatar({ url, maxWidth = 120 }: Props) {
         style={{
           display: state === 'done' ? 'block' : 'none',
           width: '100%',
-          maxWidth: '350px',
+          maxWidth: '600px',
           height: 'auto',
         }}
       />
