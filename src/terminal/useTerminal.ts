@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
-import type { Terminal as XTermType } from 'xterm';
+import type { Terminal as XTermType } from '@xterm/xterm';
 import type { DirNode } from '../types';
 import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
@@ -75,9 +75,6 @@ export function useTerminal() {
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
     term.write('\r\n\x1b[1;32muser@ami\x1b[0m:\x1b[1;34m' + displayPath + '\x1b[0m$ ');
-    requestAnimationFrame(() => {
-      term.scrollToBottom();
-    });
   }, []);
 
   const appendOutput = useCallback((text: string) => {
@@ -154,16 +151,12 @@ export function useTerminal() {
     }
 
     writePrompt();
-    // Ensure viewport follows after xterm finishes rendering
-    requestAnimationFrame(() => {
-      term.scrollToBottom();
-    });
   }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
 
-    const { Terminal } = await import('xterm');
+    const { Terminal } = await import('@xterm/xterm');
     const { FitAddon } = await import('@xterm/addon-fit');
     const { WebLinksAddon } = await import('@xterm/addon-web-links');
 
