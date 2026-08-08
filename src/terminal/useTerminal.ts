@@ -230,6 +230,10 @@ export function useTerminal() {
     term.onData((data) => {
       // Reset tab-cycle state on any non-Tab/non-ShiftTab key
       if (data !== '\t' && data !== '\x1b[Z') {
+        if (tabCycle.current) {
+          // Clear the match list displayed below the prompt
+          term.write('\x1b[s\x1b[B\x1b[2K\x1b[u');
+        }
         tabCycle.current = null;
       }
 
