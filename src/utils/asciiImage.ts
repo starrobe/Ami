@@ -1,3 +1,5 @@
+const CHARS = '@%#*+=-:. ';
+
 export function drawAsciiToCanvas(
   image: HTMLImageElement,
   canvas: HTMLCanvasElement,
@@ -27,14 +29,27 @@ export function drawAsciiToCanvas(
   canvas.width = cols * cw;
   canvas.height = rows * ch;
 
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = `${ch}px monospace`;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const idx = (y * cols + x) * 4;
-      ctx.fillStyle = `rgb(${pixels[idx]},${pixels[idx + 1]},${pixels[idx + 2]})`;
+      const r = pixels[idx];
+      const g = pixels[idx + 1];
+      const b = pixels[idx + 2];
+      const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+      const charIndex = Math.floor((brightness / 255) * (CHARS.length - 1));
+      const char = CHARS[Math.max(0, Math.min(charIndex, CHARS.length - 1))];
+
+      // Fill cell with pixel color
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(x * cw, y * ch, cw, ch);
+
+      // Draw character in contrasting shade on top
+      ctx.fillStyle = brightness > 128 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+      ctx.fillText(char, x * cw, y * ch);
     }
   }
 }
