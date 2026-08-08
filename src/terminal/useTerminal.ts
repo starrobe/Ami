@@ -228,8 +228,8 @@ export function useTerminal() {
 
     // Handle input
     term.onData((data) => {
-      // Reset tab-cycle state on any non-Tab key
-      if (data !== '\t') {
+      // Reset tab-cycle state on any non-Tab/non-ShiftTab key
+      if (data !== '\t' && data !== '\x1b[Z') {
         tabCycle.current = null;
       }
 
@@ -353,6 +353,26 @@ export function useTerminal() {
         if (cursorPosRef.current < len) {
           term.write(inputBufferRef.current[cursorPosRef.current]);
           cursorPosRef.current++;
+        }
+        return;
+      }
+
+      // Handle Shift+Tab (cycle backwards)
+      if (data === '\x1b[Z') {
+        const prev = tabCycle.current;
+        if (prev) {
+          // Same as Tab but decrement index
+          const eraseLen = prev.lastWritten.length;
+          term.write('\b \b'.repeat(eraseLen));
+          prev.index = (prev.index - 1 + prev.matches.length) % prev.matches.length;
+          inputBufferRef.current = prev.baseBuffer;
+          cursorPosRef.current = prev.baseBuffer.length;
+          const chosen = prev.matches[prev.index];
+          const fullText = prev.prefix + prev.suffixFn(chosen);
+          inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
+          cursorPosRef.current = inputBufferRef.current.length;
+          term.write(fullText);
+          prev.lastWritten = fullText;
         }
         return;
       }
