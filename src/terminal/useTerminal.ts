@@ -338,7 +338,7 @@ export function useTerminal() {
         return;
       }
 
-      // Handle arrow left
+      // Handle arrow left — move cursor back within text
       if (data === '\x1b[D') {
         if (cursorPosRef.current > 0) {
           cursorPosRef.current--;
@@ -347,7 +347,7 @@ export function useTerminal() {
         return;
       }
 
-      // Handle arrow right
+      // Handle arrow right — move cursor forward within text
       if (data === '\x1b[C') {
         if (cursorPosRef.current < inputBufferRef.current.length) {
           cursorPosRef.current++;
