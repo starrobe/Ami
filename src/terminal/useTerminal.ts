@@ -151,6 +151,7 @@ export function useTerminal() {
     }
 
     writePrompt();
+    term.scrollToBottom();
   }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
 
   const initTerminal = useCallback(async () => {
@@ -385,6 +386,7 @@ Type \x1b[1;32mhelp\x1b[0m to see available commands.
 `);
 
     writePrompt();
+    term.scrollToBottom();
 
     return () => {
       resizeObserver.disconnect();
