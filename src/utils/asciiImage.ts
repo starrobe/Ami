@@ -1,35 +1,60 @@
-const CHARS = '@%#*+=-:. ';
+const CHARS = '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^\`\'. ';
 
-export function imageToAscii(image: HTMLImageElement, maxWidth: number = 60): string {
+export function drawAsciiToCanvas(
+  image: HTMLImageElement,
+  canvas: HTMLCanvasElement,
+  maxWidth: number = 100
+): void {
   const aspect = image.naturalHeight / image.naturalWidth;
-  const width = Math.min(maxWidth, image.naturalWidth);
-  // Terminal characters are ~2x taller than wide, so halve the height
-  const height = Math.floor(width * aspect * 0.5);
+  const cols = Math.min(maxWidth, image.naturalWidth);
+  const rows = Math.floor(cols * aspect * 0.5);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '';
-
-  ctx.drawImage(image, 0, 0, width, height);
-  const imageData = ctx.getImageData(0, 0, width, height);
+  // Scale to sample resolution
+  const sampleCanvas = document.createElement('canvas');
+  sampleCanvas.width = cols;
+  sampleCanvas.height = rows;
+  const sampleCtx = sampleCanvas.getContext('2d');
+  if (!sampleCtx) return;
+  sampleCtx.drawImage(image, 0, 0, cols, rows);
+  const imageData = sampleCtx.getImageData(0, 0, cols, rows);
   const pixels = imageData.data;
+  const pixelCount = cols * rows;
 
-  let result = '';
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4;
+  // Pass 1: brightness range
+  let minBright = 255, maxBright = 0;
+  for (let i = 0; i < pixelCount; i++) {
+    const idx = i * 4;
+    const brightness = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
+    if (brightness < minBright) minBright = brightness;
+    if (brightness > maxBright) maxBright = brightness;
+  }
+  const range = maxBright - minBright || 1;
+
+  // Calculate cell size to fill the canvas
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / rows;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+
+  // Pass 2: draw characters
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const idx = (y * cols + x) * 4;
       const r = pixels[idx];
       const g = pixels[idx + 1];
       const b = pixels[idx + 2];
-      // Perceived brightness
       const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-      const charIndex = Math.floor((brightness / 255) * (CHARS.length - 1));
-      result += CHARS[charIndex];
-    }
-    result += '\n';
-  }
+      const normalized = (brightness - minBright) / range;
+      const charIndex = Math.floor(normalized * (CHARS.length - 1));
 
-  return result;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.font = `${cellH}px monospace`;
+      ctx.fillText(CHARS[Math.max(0, Math.min(charIndex, CHARS.length - 1))], x * cellW, y * cellH);
+    }
+  }
 }
