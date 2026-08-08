@@ -88,10 +88,12 @@ export function useTerminal() {
   }, []);
 
   const setCwd = useCallback((path: string) => {
+    cwdRef.current = path;
     setState(prev => ({ ...prev, cwd: path }));
   }, []);
 
   const setTheme = useCallback((name: string) => {
+    themeRef.current = name;
     setState(prev => ({ ...prev, theme: name }));
   }, []);
 
