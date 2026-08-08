@@ -377,7 +377,9 @@ export function useTerminal() {
             prev.index = (prev.index - 1 + prev.matches.length) % prev.matches.length;
           }
 
-          const erase = isFirstSelect ? '' : '\b \b'.repeat(prev.lastWritten.length);
+          const erase = isFirstSelect
+            ? '\b \b'.repeat(prev.prefix.length)
+            : '\b \b'.repeat(prev.lastWritten.length);
           inputBufferRef.current = prev.baseBuffer;
           cursorPosRef.current = prev.baseBuffer.length;
           const chosen = prev.matches[prev.index];
@@ -408,7 +410,9 @@ export function useTerminal() {
             prev.index = (prev.index + 1) % prev.matches.length;
           }
 
-          const erase = isFirstSelect ? '' : '\b \b'.repeat(prev.lastWritten.length);
+          const erase = isFirstSelect
+            ? '\b \b'.repeat(prev.prefix.length)
+            : '\b \b'.repeat(prev.lastWritten.length);
           inputBufferRef.current = prev.baseBuffer;
           cursorPosRef.current = prev.baseBuffer.length;
 
