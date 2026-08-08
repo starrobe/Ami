@@ -260,9 +260,9 @@ export function useTerminal() {
           const after = buf.slice(pos);
           inputBufferRef.current = buf.slice(0, pos - 1) + after;
           cursorPosRef.current = pos - 1;
-          term.write('\b' + after + ' ');
-          // Move cursor back
+          term.write('\x1b[?25l\b' + after + ' ');
           for (let i = 0; i <= after.length; i++) term.write('\b');
+          term.write('\x1b[?25h');
         }
         return;
       }
@@ -302,8 +302,9 @@ export function useTerminal() {
         const deleteFrom = lastSpace === -1 ? 0 : lastSpace + 1;
         inputBufferRef.current = buf.slice(0, deleteFrom) + buf.slice(pos);
         cursorPosRef.current = deleteFrom;
-        term.write('\b'.repeat(pos - deleteFrom) + buf.slice(pos) + ' ');
+        term.write('\x1b[?25l\b'.repeat(pos - deleteFrom) + buf.slice(pos) + ' ');
         for (let i = 0; i <= buf.slice(pos).length; i++) term.write('\b');
+        term.write('\x1b[?25h');
         return;
       }
 
@@ -518,9 +519,9 @@ export function useTerminal() {
         const pos = cursorPosRef.current;
         inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
         cursorPosRef.current = pos + 1;
-        term.write(data + buf.slice(pos));
-        // Move cursor back to correct position
+        term.write('\x1b[?25l' + data + buf.slice(pos));
         for (let i = 0; i < buf.length - pos; i++) term.write('\b');
+        term.write('\x1b[?25h');
       }
     });
 
