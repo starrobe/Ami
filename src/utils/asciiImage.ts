@@ -30,13 +30,19 @@ export function drawAsciiToCanvas(
   }
   const range = maxBright - minBright || 1;
 
-  // Calculate cell size to fill the canvas
-  const cellW = canvas.width / cols;
-  const cellH = canvas.height / rows;
-
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  // Use font height to derive character width (monospace char width ≈ 0.6 × font height)
+  const cellH = canvas.height / rows;
+  ctx.font = `${cellH}px monospace`;
+  const charWidth = ctx.measureText(' ').width;
+
+  // Resize canvas to match actual character grid dimensions
+  canvas.width = Math.ceil(cols * charWidth);
+  canvas.height = Math.ceil(rows * cellH);
+
+  ctx.font = `${cellH}px monospace`;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
@@ -53,8 +59,7 @@ export function drawAsciiToCanvas(
       const charIndex = Math.floor(normalized * (CHARS.length - 1));
 
       ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.font = `${cellH}px monospace`;
-      ctx.fillText(CHARS[Math.max(0, Math.min(charIndex, CHARS.length - 1))], x * cellW, y * cellH);
+      ctx.fillText(CHARS[Math.max(0, Math.min(charIndex, CHARS.length - 1))], x * charWidth, y * cellH);
     }
   }
 }
