@@ -397,9 +397,10 @@ export function useTerminal() {
             return;
           }
 
-          // Start new cycle — show match count, erase partial, write first match
+          // Start new cycle — show matches below, keep cursor on current line
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
+            term.write('\x1b[s\r\n' + matchList.join('  ') + '\x1b[u');
             if (partial.length > 0) {
               term.write('\b \b'.repeat(partial.length));
             }
