@@ -75,6 +75,7 @@ export function useTerminal() {
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
     term.write('\r\n\x1b[1;32muser@ami\x1b[0m:\x1b[1;34m' + displayPath + '\x1b[0m$ ');
+    term.scrollToBottom();
   }, []);
 
   const appendOutput = useCallback((text: string) => {
