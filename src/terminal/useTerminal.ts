@@ -75,6 +75,9 @@ export function useTerminal() {
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
     term.write('\r\n\x1b[1;32muser@ami\x1b[0m:\x1b[1;34m' + displayPath + '\x1b[0m$ ');
+    requestAnimationFrame(() => {
+      term.scrollToBottom();
+    });
   }, []);
 
   const appendOutput = useCallback((text: string) => {
@@ -151,6 +154,10 @@ export function useTerminal() {
     }
 
     writePrompt();
+    // Ensure viewport follows after xterm finishes rendering
+    requestAnimationFrame(() => {
+      term.scrollToBottom();
+    });
   }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
 
   const initTerminal = useCallback(async () => {
