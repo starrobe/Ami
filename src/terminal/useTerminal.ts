@@ -28,6 +28,7 @@ export interface TerminalState {
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
   const fitAddonRef = useRef<any>(null);
+  const initGenRef = useRef(0);
   const [state, setState] = useState<TerminalState>({
     cwd: '/home/user',
     theme: 'matrix',
@@ -153,9 +154,16 @@ export function useTerminal() {
   }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
 
   const initTerminal = useCallback(async () => {
+    const gen = ++initGenRef.current;
+
     const { Terminal } = await import('xterm');
     const { FitAddon } = await import('@xterm/addon-fit');
     const { WebLinksAddon } = await import('@xterm/addon-web-links');
+
+    // Abort if a newer initTerminal call has started (StrictMode remount)
+    if (gen !== initGenRef.current) {
+      return () => {};
+    }
 
     const term = new Terminal({
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",

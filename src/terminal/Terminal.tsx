@@ -6,13 +6,22 @@ export default function Terminal() {
   const { containerRef, initTerminal, state } = useTerminal();
 
   useEffect(() => {
-    const cleanupPromise = initTerminal();
+    let disposed = false;
+    let cleanupFn: (() => void) | undefined;
+
+    initTerminal().then((fn) => {
+      if (disposed) {
+        fn?.();
+      } else {
+        cleanupFn = fn;
+      }
+    });
+
     return () => {
-      cleanupPromise.then((fn) => {
-        if (typeof fn === 'function') fn();
-      });
+      disposed = true;
+      cleanupFn?.();
     };
-  }, [initTerminal]);
+  }, []);
 
   return (
     <div className="terminal-shell">
