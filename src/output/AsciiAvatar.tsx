@@ -40,13 +40,20 @@ export default function AsciiAvatar({ url, maxWidth = 120 }: Props) {
   }, [url, maxWidth]);
 
   if (state === 'error') return null;
-  if (state === 'loading') return <div className="ascii-loading">Loading...</div>;
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="ascii-canvas"
-      style={{ width: '100%', maxWidth: '800px', height: 'auto' }}
-    />
+    <div>
+      {state === 'loading' && <div className="ascii-loading">Loading...</div>}
+      <canvas
+        ref={canvasRef}
+        className="ascii-canvas"
+        style={{
+          display: state === 'done' ? 'block' : 'none',
+          width: '100%',
+          maxWidth: '800px',
+          height: 'auto',
+        }}
+      />
+    </div>
   );
 }
