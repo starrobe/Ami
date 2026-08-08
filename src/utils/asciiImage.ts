@@ -43,7 +43,8 @@ export function drawAsciiToCanvas(
   canvas.height = Math.ceil(rows * cellH);
 
   ctx.font = `${cellH}px monospace`;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
 
