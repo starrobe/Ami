@@ -74,7 +74,7 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
-    term.write('\r\n\x1b[37muser@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m$ ');
+    term.write('\r\n\x1b[37muser@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
     term.scrollToBottom();
     term.focus();
   }, []);
