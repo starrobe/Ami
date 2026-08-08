@@ -389,25 +389,26 @@ export function useTerminal() {
 
           let matchList: string[] = [];
           let buildSuffix: ((m: string) => string) | null = null;
+          let matchPrefix = '';  // the part being matched (last path segment or full command)
 
           if (isCommand) {
             const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
-            const prefix = partial.toLowerCase();
-            matchList = cmdNames.filter(c => c.startsWith(prefix));
-            buildSuffix = (m: string) => m.slice(prefix.length) + ' ';
+            matchPrefix = partial.toLowerCase();
+            matchList = cmdNames.filter(c => c.startsWith(matchPrefix));
+            buildSuffix = (m: string) => m.slice(matchPrefix.length) + ' ';
           } else {
             // Commands that don't take file arguments — skip path completion
             const cmd = tokens[0]?.toLowerCase();
             if (cmd && !['cat', 'cd', 'ls', 'grep'].includes(cmd)) return;
             try {
               const pathSegs = partial.split('/');
-              const prefix = pathSegs[pathSegs.length - 1] || '';
+              matchPrefix = pathSegs[pathSegs.length - 1] || '';
               const dirPart = pathSegs.slice(0, -1).join('/');
               const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
               const dirNode = getNode(fsRef.current, resolvedDir);
               if (dirNode && dirNode.type === 'dir') {
                 const children = Object.keys(dirNode.children);
-                matchList = children.filter(c => c.startsWith(prefix));
+                matchList = children.filter(c => c.startsWith(matchPrefix));
                 const basePath = pathSegs.slice(0, -1).join('/');
                 buildSuffix = (m: string) => {
                   const entry = dirNode.children[m];
@@ -423,8 +424,8 @@ export function useTerminal() {
 
           // Common prefix completion (no cycling)
           const common = findCommonPrefix(matchList);
-          if (matchList.length > 1 && common.length > partial.length && partial.length > 0) {
-            const toInsert = common.slice(partial.length);
+          if (matchList.length > 1 && common.length > matchPrefix.length && matchPrefix.length > 0) {
+            const toInsert = common.slice(matchPrefix.length);
             inputBufferRef.current += toInsert;
             term.write(toInsert);
             return;
