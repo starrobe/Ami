@@ -497,6 +497,17 @@ export function useTerminal() {
             lastWritten: '',
             suffixFn: suffixFn!,
           };
+
+          // Single match — complete immediately, no list display
+          if (matchList.length === 1) {
+            const chosen = matchList[0];
+            const fullText = partial + suffixFn!(chosen);
+            const erase = partial.length > 0 ? '\b \b'.repeat(partial.length) : '';
+            inputBufferRef.current = buffer.slice(0, prefixStart) + fullText;
+            cursorPosRef.current = inputBufferRef.current.length;
+            term.write(erase + fullText);
+            tabCycle.current = null;
+          }
         }
         return;
       }
