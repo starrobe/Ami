@@ -397,13 +397,15 @@ export function useTerminal() {
             return;
           }
 
-          // Start new cycle — show matches below, keep cursor on current line
+          // Erase the partial from terminal display before writing match
+          if (partial.length > 0) {
+            term.write('\b \b'.repeat(partial.length));
+          }
+
+          // Show match list for multiple matches
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
             term.write('\x1b[s\r\n' + matchList.join('  ') + '\x1b[u');
-            if (partial.length > 0) {
-              term.write('\b \b'.repeat(partial.length));
-            }
           }
 
           tabCycle.current = {
@@ -418,7 +420,7 @@ export function useTerminal() {
           };
         }
 
-        // Write the cycled match
+        // Write the cycled match (or the only match)
         const cycle = tabCycle.current!;
         const chosen = cycle.matches[cycle.index];
         const fullText = cycle.prefix + cycle.suffixFn(chosen);
@@ -426,7 +428,7 @@ export function useTerminal() {
         term.write(fullText);
         cycle.lastWritten = fullText;
 
-        // Single match — cycle is done after writing
+        // Single match or common prefix — done
         if (cycle.matches.length === 1) {
           tabCycle.current = null;
         }
