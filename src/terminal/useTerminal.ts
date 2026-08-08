@@ -145,7 +145,7 @@ export function useTerminal() {
     }));
 
     // Clear rich content for non-cat commands
-    if (parsed.cmd !== 'cat') {
+    if (!['cat', 'whoami'].includes(parsed.cmd)) {
       setRichContent(null);
     }
 
