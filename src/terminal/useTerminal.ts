@@ -74,7 +74,7 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
-    term.write('\r\n\x1b[1;32muser@ami\x1b[0m:\x1b[1;34m' + displayPath + '\x1b[0m$ ');
+    term.write('\r\n\x1b[37muser@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m$ ');
     term.scrollToBottom();
     term.focus();
   }, []);
@@ -372,7 +372,7 @@ export function useTerminal() {
     }
 
     // Write welcome message
-    term.write(`\x1b[1;32m
+    term.write(`\x1b[37m
    ___           _
   / _ \\         (_)
  / /_\\ \\_ __ ___ _
@@ -383,7 +383,7 @@ export function useTerminal() {
               |___/
 \x1b[0m
 Welcome to Ami Terminal v1.0.0
-Type \x1b[1;32mhelp\x1b[0m to see available commands.
+Type \x1b[37mhelp\x1b[0m to see available commands.
 
 `);
 
