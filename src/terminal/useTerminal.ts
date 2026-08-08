@@ -229,6 +229,7 @@ export function useTerminal() {
 
     xtermRef.current = term;
     fitAddonRef.current = fitAddon;
+    (window as any).__term = term;
 
     // Handle input
     term.onData((data) => {
