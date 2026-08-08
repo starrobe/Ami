@@ -88,7 +88,7 @@ html, body, #root {
 
 .ascii-avatar {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 6px;
+  font-size: 12px;
   line-height: 1;
   color: #E0E0E0;
   margin: 0;

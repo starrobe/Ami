@@ -6,7 +6,7 @@ export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
   ctx.setRichContent(
     React.createElement(AsciiAvatar, {
       url: '/avatar.jpg',
-      maxWidth: 40,
+      maxWidth: 30,
     })
   );
   return { output: 'user\r\n' };
