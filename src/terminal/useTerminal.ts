@@ -61,6 +61,7 @@ export function useTerminal() {
 
   const fsRef = useRef<DirNode>(createInitialFS());
   const inputBufferRef = useRef('');
+  const cursorPosRef = useRef(0);
   const historyIndexRef = useRef(-1);
   const prevCwdRef = useRef('/home/user');
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -238,15 +239,22 @@ export function useTerminal() {
         term.write('\r\n');
         executeCommand(input);
         inputBufferRef.current = '';
+        cursorPosRef.current = 0;
         historyIndexRef.current = -1;
         return;
       }
 
       // Handle Backspace
       if (data === '\x7f') {
-        if (inputBufferRef.current.length > 0) {
-          inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-          term.write('\b \b');
+        const buf = inputBufferRef.current;
+        const pos = cursorPosRef.current;
+        if (pos > 0) {
+          const after = buf.slice(pos);
+          inputBufferRef.current = buf.slice(0, pos - 1) + after;
+          cursorPosRef.current = pos - 1;
+          term.write('\b' + after + ' ');
+          // Move cursor back
+          for (let i = 0; i <= after.length; i++) term.write('\b');
         }
         return;
       }
@@ -263,30 +271,31 @@ export function useTerminal() {
       if (data === '\x03') {
         term.write('^C\r\n');
         inputBufferRef.current = '';
+        cursorPosRef.current = 0;
         writePrompt();
         return;
       }
 
       // Handle Ctrl+U (clear line)
       if (data === '\x15') {
-        while (inputBufferRef.current.length > 0) {
-          inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-          term.write('\b \b');
-        }
+        const buf = inputBufferRef.current;
+        for (let i = 0; i < buf.length; i++) term.write('\b \b');
+        inputBufferRef.current = '';
+        cursorPosRef.current = 0;
         return;
       }
 
       // Handle Ctrl+W (delete word)
       if (data === '\x17') {
         const buf = inputBufferRef.current;
-        const trimmed = buf.replace(/\s+$/, '');
-        const lastSpace = trimmed.lastIndexOf(' ');
+        const pos = cursorPosRef.current;
+        const before = buf.slice(0, pos).replace(/\s+$/, '');
+        const lastSpace = before.lastIndexOf(' ');
         const deleteFrom = lastSpace === -1 ? 0 : lastSpace + 1;
-        const deleted = buf.slice(deleteFrom);
-        inputBufferRef.current = buf.slice(0, deleteFrom);
-        for (let i = 0; i < deleted.length; i++) {
-          term.write('\b \b');
-        }
+        inputBufferRef.current = buf.slice(0, deleteFrom) + buf.slice(pos);
+        cursorPosRef.current = deleteFrom;
+        term.write('\b'.repeat(pos - deleteFrom) + buf.slice(pos) + ' ');
+        for (let i = 0; i <= buf.slice(pos).length; i++) term.write('\b');
         return;
       }
 
@@ -306,13 +315,13 @@ export function useTerminal() {
         }
         inputBufferRef.current = history[historyIndexRef.current];
         term.write(inputBufferRef.current);
+        cursorPosRef.current = inputBufferRef.current.length;
         return;
       }
 
       // Handle arrow down (history)
       if (data === '\x1b[B') {
         const history = historyRef.current;
-        // Clear current input
         while (inputBufferRef.current.length > 0) {
           inputBufferRef.current = inputBufferRef.current.slice(0, -1);
           term.write('\b \b');
@@ -325,6 +334,25 @@ export function useTerminal() {
           inputBufferRef.current = '';
         }
         term.write(inputBufferRef.current);
+        cursorPosRef.current = inputBufferRef.current.length;
+        return;
+      }
+
+      // Handle arrow left
+      if (data === '\x1b[D') {
+        if (cursorPosRef.current > 0) {
+          cursorPosRef.current--;
+          term.write('\b');
+        }
+        return;
+      }
+
+      // Handle arrow right
+      if (data === '\x1b[C') {
+        if (cursorPosRef.current < inputBufferRef.current.length) {
+          cursorPosRef.current++;
+          term.write('\x1b[C');
+        }
         return;
       }
 
@@ -346,6 +374,7 @@ export function useTerminal() {
 
           // Restore buffer to base
           inputBufferRef.current = prev.baseBuffer;
+          cursorPosRef.current = prev.baseBuffer.length;
         } else {
           // --- Build new completion ---
           tabCycle.current = null;
@@ -428,6 +457,7 @@ export function useTerminal() {
         const chosen = cycle.matches[cycle.index];
         const fullText = cycle.prefix + cycle.suffixFn(chosen);
         inputBufferRef.current = cycle.baseBuffer.slice(0, cycle.prefixStart) + fullText;
+        cursorPosRef.current = inputBufferRef.current.length;
         term.write(fullText);
         cycle.lastWritten = fullText;
 
@@ -440,8 +470,13 @@ export function useTerminal() {
 
       // Normal character input
       if (data.length === 1 && data.charCodeAt(0) >= 32) {
-        inputBufferRef.current += data;
-        term.write(data);
+        const buf = inputBufferRef.current;
+        const pos = cursorPosRef.current;
+        inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
+        cursorPosRef.current = pos + 1;
+        term.write(data + buf.slice(pos));
+        // Move cursor back to correct position
+        for (let i = 0; i < buf.length - pos; i++) term.write('\b');
       }
     });
 
