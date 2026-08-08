@@ -92,4 +92,9 @@ html, body, #root {
   padding: 8px 24px 16px 24px;
   max-height: 50%;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.terminal-rich::-webkit-scrollbar {
+  display: none;
 }
