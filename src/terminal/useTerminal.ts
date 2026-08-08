@@ -299,9 +299,9 @@ export function useTerminal() {
       }
 
       // Handle Tab (autocomplete)
-      if (data === '\t') {
+      if (data === '\t' || data === '\x09') {
         const buffer = inputBufferRef.current;
-        if (buffer.length === 0) return;
+        if (!buffer) return;
 
         // Split without trimming to detect trailing-space empty token
         const rawTokens = buffer.split(/\s+/);
@@ -350,8 +350,6 @@ export function useTerminal() {
           try {
             const pathSegs = partial.split('/');
             const prefix = pathSegs[pathSegs.length - 1] || '';
-            // Empty prefix — nothing to complete
-            if (!prefix) return;
             const dirPart = pathSegs.slice(0, -1).join('/');
             const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
             const dirNode = getNode(fsRef.current, resolvedDir);
