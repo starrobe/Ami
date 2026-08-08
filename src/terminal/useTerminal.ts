@@ -298,56 +298,93 @@ export function useTerminal() {
         return;
       }
 
-      // Handle Tab (autocomplete stub)
+      // Handle Tab (autocomplete)
       if (data === '\t') {
-        // Simple path autocomplete — resolves common prefixes
         const buffer = inputBufferRef.current;
-        const tokens = buffer.split(' ');
-        const lastToken = tokens[tokens.length - 1] || '';
-        try {
-          const resolvedPath = resolvePath(fsRef.current, cwdRef.current, lastToken);
-          const node = getNode(fsRef.current, resolvedPath);
+        const tokens = buffer.trim().split(/\s+/);
+        const isFirstToken = buffer.length === 0 || (tokens.length <= 1 && !buffer.endsWith(' '));
+        const lastToken = tokens.length > 0 ? tokens[tokens.length - 1] : '';
 
-          if (node && node.type === 'dir') {
-            // Complete directory names
-            const children = Object.keys(node.children);
-            const matching = children.filter(c => {
-              // If the last token is part of a path, match the last segment
-              const pathSegs = lastToken.split('/');
-              const prefix = pathSegs[pathSegs.length - 1] || '';
-              return c.startsWith(prefix);
-            });
-            if (matching.length === 1) {
-              // Single match — complete it
-              const pathSegs = lastToken.split('/');
-              pathSegs[pathSegs.length - 1] = matching[0];
-              const completion = pathSegs.join('/') + (node.children[matching[0]].type === 'dir' ? '/' : '');
-              const toInsert = completion.slice(lastToken.length);
+        if (isFirstToken) {
+          // --- Command name completion ---
+          const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
+          const prefix = lastToken.toLowerCase();
+          const matching = cmdNames.filter(c => c.startsWith(prefix));
+
+          if (matching.length === 1) {
+            const toInsert = matching[0].slice(prefix.length);
+            inputBufferRef.current += toInsert + ' ';
+            term.write(toInsert + ' ');
+          } else if (matching.length > 1) {
+            // Find common prefix
+            let common = matching[0];
+            for (let i = 1; i < matching.length; i++) {
+              let j = 0;
+              while (j < common.length && j < matching[i].length && common[j] === matching[i][j]) {
+                j++;
+              }
+              common = common.slice(0, j);
+            }
+            if (common.length > prefix.length) {
+              const toInsert = common.slice(prefix.length);
               inputBufferRef.current += toInsert;
               term.write(toInsert);
-            } else if (matching.length > 1) {
-              // Multiple matches — find common prefix and complete
-              let commonPrefix = matching[0];
-              for (let i = 1; i < matching.length; i++) {
-                let j = 0;
-                while (j < commonPrefix.length && j < matching[i].length && commonPrefix[j] === matching[i][j]) {
-                  j++;
+            } else {
+              // Show matches
+              term.write('\r\n' + matching.join('  ') + '\r\n');
+              writePrompt();
+              term.write(buffer);
+              inputBufferRef.current = buffer;
+            }
+          }
+        } else {
+          // --- Path completion ---
+          try {
+            // Get the directory part and the prefix part
+            const pathSegs = lastToken.split('/');
+            const prefix = pathSegs[pathSegs.length - 1] || '';
+            const dirPart = pathSegs.slice(0, -1).join('/');
+            const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
+            const dirNode = getNode(fsRef.current, resolvedDir);
+
+            if (dirNode && dirNode.type === 'dir') {
+              const children = Object.keys(dirNode.children);
+              const matching = children.filter(c => c.startsWith(prefix));
+
+              if (matching.length === 1) {
+                const entry = dirNode.children[matching[0]];
+                const suffix = entry.type === 'dir' ? '/' : '';
+                const basePath = pathSegs.slice(0, -1).join('/');
+                const fullMatch = (basePath ? basePath + '/' : '') + matching[0] + suffix;
+                const toInsert = fullMatch.slice(lastToken.length);
+                inputBufferRef.current += toInsert;
+                term.write(toInsert);
+              } else if (matching.length > 1) {
+                // Find common prefix
+                let common = matching[0];
+                for (let i = 1; i < matching.length; i++) {
+                  let j = 0;
+                  while (j < common.length && j < matching[i].length && common[j] === matching[i][j]) {
+                    j++;
+                  }
+                  common = common.slice(0, j);
                 }
-                commonPrefix = commonPrefix.slice(0, j);
-              }
-              if (commonPrefix.length > 0) {
-                const pathSegs = lastToken.split('/');
-                const prefix = pathSegs[pathSegs.length - 1] || '';
-                if (commonPrefix.length > prefix.length) {
-                  const toInsert = commonPrefix.slice(prefix.length);
+                if (common.length > prefix.length) {
+                  const toInsert = common.slice(prefix.length);
                   inputBufferRef.current += toInsert;
                   term.write(toInsert);
+                } else {
+                  // Show matches
+                  term.write('\r\n' + matching.join('  ') + '\r\n');
+                  writePrompt();
+                  term.write(buffer);
+                  inputBufferRef.current = buffer;
                 }
               }
             }
+          } catch {
+            // Ignore tab completion errors
           }
-        } catch {
-          // Ignore tab completion errors
         }
         return;
       }
