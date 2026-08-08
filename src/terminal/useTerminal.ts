@@ -31,7 +31,7 @@ export function useTerminal() {
   const initGenRef = useRef(0);
   const [state, setState] = useState<TerminalState>({
     cwd: '/home/user',
-    theme: 'matrix',
+    theme: 'mono',
     history: [],
     richContent: null,
   });
@@ -173,10 +173,10 @@ export function useTerminal() {
       fontSize: 15,
       lineHeight: 1.5,
       theme: {
-        background: '#0D1117',
-        foreground: '#00FF41',
-        cursor: '#00FF41',
-        selectionBackground: 'rgba(0, 255, 65, 0.3)',
+        background: '#0a0a0a',
+        foreground: '#E0E0E0',
+        cursor: '#FFFFFF',
+        selectionBackground: 'rgba(255, 255, 255, 0.25)',
       },
       cursorBlink: true,
       cursorStyle: 'block',
