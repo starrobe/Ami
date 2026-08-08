@@ -25,6 +25,19 @@ export interface TerminalState {
   richContent: ReactNode | null;
 }
 
+function findCommonPrefix(strings: string[]): string {
+  if (strings.length === 0) return '';
+  let common = strings[0];
+  for (let i = 1; i < strings.length; i++) {
+    let j = 0;
+    while (j < common.length && j < strings[i].length && common[j] === strings[i][j]) {
+      j++;
+    }
+    common = common.slice(0, j);
+  }
+  return common;
+}
+
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
   const fitAddonRef = useRef<any>(null);
@@ -51,6 +64,15 @@ export function useTerminal() {
   const historyIndexRef = useRef(-1);
   const prevCwdRef = useRef('/home/user');
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Tab-completion cycle state
+  const tabCycle = useRef<{
+    matches: string[];
+    index: number;
+    prefix: string;
+    prefixStart: number; // position in buffer where the partial token starts
+    isCommand: boolean;
+  } | null>(null);
 
   // Apply theme changes to the terminal instance and page chrome
   useEffect(() => {
@@ -202,6 +224,11 @@ export function useTerminal() {
 
     // Handle input
     term.onData((data) => {
+      // Reset tab-cycle state on any non-Tab key
+      if (data !== '\t') {
+        tabCycle.current = null;
+      }
+
       // Handle Enter
       if (data === '\r') {
         const input = inputBufferRef.current;
@@ -298,90 +325,106 @@ export function useTerminal() {
         return;
       }
 
-      // Handle Tab (autocomplete)
-      if (data === '\t' || data === '\x09') {
+      // Handle Tab (autocomplete with cycling)
+      if (data === '\t') {
         const buffer = inputBufferRef.current;
-        if (!buffer) return;
+        if (buffer.length === 0) return;
 
-        // Split without trimming to detect trailing-space empty token
         const rawTokens = buffer.split(/\s+/);
         const tokens = rawTokens.filter(t => t.length > 0);
         const trailingSpace = /\s$/.test(buffer);
-
-        // First word is always the command; anything after is path
         const isCommand = tokens.length === 0 || (tokens.length === 1 && !trailingSpace);
         const partial = trailingSpace ? '' : (tokens.length > 0 ? tokens[tokens.length - 1] : '');
+        // Position in buffer where the partial token starts
+        const prefixStart = buffer.length - partial.length;
+
+        // Build match list
+        let matchList: string[] = [];
+        let suffixForMatch: ((m: string) => string) | null = null;
 
         if (isCommand) {
-          // --- Command name completion ---
           const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
           const prefix = partial.toLowerCase();
-          if (!prefix) return;
-          const matching = cmdNames.filter(c => c.startsWith(prefix));
-
-          if (matching.length === 1) {
-            const toInsert = matching[0].slice(prefix.length);
-            inputBufferRef.current += toInsert + ' ';
-            term.write(toInsert + ' ');
-          } else if (matching.length > 1) {
-            // Find common prefix and complete it
-            let common = matching[0];
-            for (let i = 1; i < matching.length; i++) {
-              let j = 0;
-              while (j < common.length && j < matching[i].length && common[j] === matching[i][j]) {
-                j++;
-              }
-              common = common.slice(0, j);
-            }
-            if (common.length > prefix.length) {
-              const toInsert = common.slice(prefix.length);
-              inputBufferRef.current += toInsert;
-              term.write(toInsert);
-            }
-          }
+          matchList = cmdNames.filter(c => c.startsWith(prefix));
+          suffixForMatch = () => ' ';
         } else {
-          // --- Path completion ---
           try {
             const pathSegs = partial.split('/');
             const prefix = pathSegs[pathSegs.length - 1] || '';
             const dirPart = pathSegs.slice(0, -1).join('/');
             const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
             const dirNode = getNode(fsRef.current, resolvedDir);
-
             if (dirNode && dirNode.type === 'dir') {
               const children = Object.keys(dirNode.children);
-              const matching = children.filter(c => c.startsWith(prefix));
-              if (matching.length === 0) return;
-
-              if (matching.length === 1) {
-                const entry = dirNode.children[matching[0]];
-                const suffix = entry.type === 'dir' ? '/' : '';
-                const basePath = pathSegs.slice(0, -1).join('/');
-                const fullMatch = (basePath ? basePath + '/' : '') + matching[0] + suffix;
-                const toInsert = fullMatch.slice(partial.length);
-                inputBufferRef.current += toInsert;
-                term.write(toInsert);
-              } else {
-                // Find common prefix and complete it
-                let common = matching[0];
-                for (let i = 1; i < matching.length; i++) {
-                  let j = 0;
-                  while (j < common.length && j < matching[i].length && common[j] === matching[i][j]) {
-                    j++;
-                  }
-                  common = common.slice(0, j);
-                }
-                if (common.length > prefix.length) {
-                  const toInsert = common.slice(prefix.length);
-                  inputBufferRef.current += toInsert;
-                  term.write(toInsert);
-                }
-              }
+              matchList = children.filter(c => c.startsWith(prefix));
+              const basePath = pathSegs.slice(0, -1).join('/');
+              suffixForMatch = (m: string) => {
+                const entry = dirNode.children[m];
+                const sfx = entry.type === 'dir' ? '/' : '';
+                const fullMatch = (basePath ? basePath + '/' : '') + m + sfx;
+                return fullMatch.slice(partial.length);
+              };
             }
-          } catch {
-            // Ignore tab completion errors
-          }
+          } catch { /* ignore */ }
         }
+
+        if (matchList.length === 0) return;
+
+        // Single match — just complete it
+        if (matchList.length === 1) {
+          const toInsert = suffixForMatch!(matchList[0]);
+          inputBufferRef.current += toInsert;
+          term.write(toInsert);
+          tabCycle.current = null;
+          return;
+        }
+
+        // Check if we're continuing a previous cycle
+        const prev = tabCycle.current;
+        const sameCycle = prev && prev.prefix === partial && prev.isCommand === isCommand;
+
+        if (sameCycle) {
+          // Advance to next match
+          prev.index = (prev.index + 1) % matchList.length;
+        } else {
+          // New cycle: show all matches, start at first match
+          const common = findCommonPrefix(matchList);
+          if (common.length > partial.length && partial.length > 0) {
+            // Has common prefix beyond what's typed — complete it first
+            const toInsert = common.slice(partial.length);
+            inputBufferRef.current += toInsert;
+            term.write(toInsert);
+            tabCycle.current = null;
+            return;
+          }
+          // No common prefix or empty partial — show matches and start cycling
+          term.write('\r\n' + matchList.join('  '));
+          writePrompt();
+          term.write(buffer);
+          prev && (tabCycle.current = null);
+          tabCycle.current = {
+            matches: matchList,
+            index: 0,
+            prefix: partial,
+            prefixStart,
+            isCommand,
+          };
+        }
+
+        // Replace the partial token with the cycled match
+        const cycle = tabCycle.current!;
+        const chosen = matchList[cycle.index];
+        const suffix = suffixForMatch!(chosen);
+
+        // Erase the partial token from display
+        const eraseSeq = '\b \b'.repeat(partial.length);
+        term.write(eraseSeq);
+
+        // Update buffer: replace from prefixStart with the chosen match + suffix
+        const before = buffer.slice(0, prefixStart);
+        const after = before + chosen + suffix;
+        inputBufferRef.current = after;
+        term.write(chosen + suffix);
         return;
       }
 
