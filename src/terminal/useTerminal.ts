@@ -366,6 +366,9 @@ export function useTerminal() {
             matchList = cmdNames.filter(c => c.startsWith(prefix));
             buildSuffix = (m: string) => m.slice(prefix.length) + ' ';
           } else {
+            // Commands that don't take file arguments — skip path completion
+            const cmd = tokens[0]?.toLowerCase();
+            if (cmd && !['cat', 'cd', 'ls', 'grep'].includes(cmd)) return;
             try {
               const pathSegs = partial.split('/');
               const prefix = pathSegs[pathSegs.length - 1] || '';
