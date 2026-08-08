@@ -222,7 +222,7 @@ export function useTerminal() {
       // Handle Ctrl+L (clear / form feed)
       if (data === '\x0c') {
         setRichContent(null);
-        term.clear();
+        term.write('\x1b[2J\x1b[H');
         writePrompt();
         return;
       }
