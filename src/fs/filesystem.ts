@@ -17,12 +17,62 @@ export function createInitialFS(): DirNode {
                 type: 'file',
                 content: aboutContent,
               },
+              // Files with common prefix "photo-"
+              'photo-1.jpg': {
+                type: 'file',
+                content: 'binary',
+              },
+              'photo-2.jpg': {
+                type: 'file',
+                content: 'binary',
+              },
+              'photo-3.jpg': {
+                type: 'file',
+                content: 'binary',
+              },
+              // Common prefix "read"
+              'readme.txt': {
+                type: 'file',
+                content: 'Welcome to Ami!',
+              },
+              'receipt.pdf': {
+                type: 'file',
+                content: 'binary',
+              },
+              // Directories with common prefix "doc"
+              'documents': {
+                type: 'dir',
+                children: {
+                  'resume.pdf': { type: 'file', content: 'resume' },
+                  'notes.txt': { type: 'file', content: 'notes' },
+                },
+              },
+              'downloads': {
+                type: 'dir',
+                children: {
+                  'setup.exe': { type: 'file', content: 'binary' },
+                },
+              },
               projects: {
                 type: 'dir',
                 children: {
                   'ami-terminal.md': {
                     type: 'file',
                     content: amiTerminalContent,
+                  },
+                  // Common prefix "ami-"
+                  'ami-bot.md': {
+                    type: 'file',
+                    content: '---\ntitle: Ami Bot\n---\n# Ami Bot\n',
+                  },
+                  // Common prefix "tui-"
+                  'tui-app.md': {
+                    type: 'file',
+                    content: '---\ntitle: TUI App\n---\n# TUI App\n',
+                  },
+                  'tui-game.md': {
+                    type: 'file',
+                    content: '---\ntitle: TUI Game\n---\n# TUI Game\n',
                   },
                 },
               },
@@ -32,6 +82,24 @@ export function createInitialFS(): DirNode {
                   'hello-world.md': {
                     type: 'file',
                     content: helloWorldContent,
+                  },
+                  // Common prefix "hello-"
+                  'hello-react.md': {
+                    type: 'file',
+                    content: '---\ntitle: Hello React\n---\n# Hello React\n',
+                  },
+                  'hello-vue.md': {
+                    type: 'file',
+                    content: '---\ntitle: Hello Vue\n---\n# Hello Vue\n',
+                  },
+                  // Common prefix "setup-"
+                  'setup-guide.md': {
+                    type: 'file',
+                    content: '---\ntitle: Setup Guide\n---\n# Setup Guide\n',
+                  },
+                  'setup-tips.md': {
+                    type: 'file',
+                    content: '---\ntitle: Setup Tips\n---\n# Setup Tips\n',
                   },
                 },
               },
