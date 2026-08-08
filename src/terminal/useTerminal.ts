@@ -377,7 +377,7 @@ export function useTerminal() {
           const fullText = prev.prefix + prev.suffixFn(chosen);
           inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
           cursorPosRef.current = inputBufferRef.current.length;
-          const matchLine = '\x1b7\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b8';
+          const matchLine = '\x1b[s\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
           term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
         }
@@ -404,7 +404,7 @@ export function useTerminal() {
           cursorPosRef.current = inputBufferRef.current.length;
 
           // Redraw match list — move to existing line below, clear and rewrite
-          const matchLine = '\x1b7\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b8';
+          const matchLine = '\x1b[s\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
           term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
           return;
@@ -466,7 +466,7 @@ export function useTerminal() {
           // Show match list below prompt with first item highlighted
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
-            term.write('\x1b7\r\n' + formatMatchList(matchList, 0) + '\x1b8');
+            term.write('\x1b[s\r\n' + formatMatchList(matchList, 0) + '\x1b[u');
           }
 
           tabCycle.current = {
