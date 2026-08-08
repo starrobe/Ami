@@ -38,6 +38,10 @@ function findCommonPrefix(strings: string[]): string {
   return common;
 }
 
+function formatMatchList(matches: string[], selectedIndex: number): string {
+  return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
+}
+
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
   const fitAddonRef = useRef<any>(null);
@@ -365,9 +369,7 @@ export function useTerminal() {
       if (data === '\x1b[Z') {
         const prev = tabCycle.current;
         if (prev) {
-          // Same as Tab but decrement index
-          const eraseLen = prev.lastWritten.length;
-          term.write('\b \b'.repeat(eraseLen));
+          const erase = '\b \b'.repeat(prev.lastWritten.length);
           prev.index = (prev.index - 1 + prev.matches.length) % prev.matches.length;
           inputBufferRef.current = prev.baseBuffer;
           cursorPosRef.current = prev.baseBuffer.length;
@@ -375,7 +377,8 @@ export function useTerminal() {
           const fullText = prev.prefix + prev.suffixFn(chosen);
           inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
           cursorPosRef.current = inputBufferRef.current.length;
-          term.write(fullText);
+          const matchLine = '\x1b[s\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
+          term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
         }
         return;
@@ -390,18 +393,19 @@ export function useTerminal() {
 
         // Check if continuing a previous cycle
         if (prev && buffer.startsWith(prev.baseBuffer)) {
-          // Erase previous + prepare to write new
           const erase = '\b \b'.repeat(prev.lastWritten.length);
           prev.index = (prev.index + 1) % prev.matches.length;
           inputBufferRef.current = prev.baseBuffer;
           cursorPosRef.current = prev.baseBuffer.length;
 
-          // Write erase + new match in one call to avoid cursor flicker
           const chosen = prev.matches[prev.index];
           const fullText = prev.prefix + prev.suffixFn(chosen);
           inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
           cursorPosRef.current = inputBufferRef.current.length;
-          term.write(erase + fullText);
+
+          // Redraw match list with new selection + erase + write match in one call
+          const matchLine = '\x1b[s\x1b[B\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
+          term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
           return;
         } else {
@@ -459,10 +463,10 @@ export function useTerminal() {
             return;
           }
 
-          // Show match list below prompt, keep cursor in place
+          // Show match list below prompt with first item highlighted
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
-            term.write('\x1b[s\r\n' + matchList.join('  ') + '\x1b[u');
+            term.write('\x1b[s\r\n' + formatMatchList(matchList, 0) + '\x1b[u');
           }
 
           tabCycle.current = {
@@ -476,7 +480,7 @@ export function useTerminal() {
             suffixFn: suffixFn!,
           };
 
-          // Write the first match — erase partial + write in one call to avoid flicker
+          // Write the first match — erase partial + write in one call
           const cycle = tabCycle.current!;
           const chosen = cycle.matches[cycle.index];
           const fullText = cycle.prefix + cycle.suffixFn(chosen);
