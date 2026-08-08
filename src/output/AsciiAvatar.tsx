@@ -12,7 +12,9 @@ export default function AsciiAvatar({ url, maxWidth = 40 }: Props) {
 
   useEffect(() => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (url.startsWith('http')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       try {
         const result = imageToAscii(img, maxWidth);

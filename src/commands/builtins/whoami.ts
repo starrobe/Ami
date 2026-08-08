@@ -5,7 +5,7 @@ import AsciiAvatar from '../../output/AsciiAvatar';
 export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
   ctx.setRichContent(
     React.createElement(AsciiAvatar, {
-      url: 'https://starrobe-blog.oss-cn-beijing.aliyuncs.com/avatar/jashinchan.jpg',
+      url: '/avatar.jpg',
       maxWidth: 40,
     })
   );
