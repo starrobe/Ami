@@ -594,19 +594,45 @@ export function useTerminal() {
       }
     });
 
-    // Touch scroll support for mobile (xterm.js lacks native touch scroll)
-    let touchStartY = 0;
+    // Touch scroll with momentum (xterm.js lacks native touch scroll)
+    let touchY = 0, velocity = 0, lastTime = 0, momentumRaf = 0;
+
+    const stopMomentum = () => {
+      if (momentumRaf) { cancelAnimationFrame(momentumRaf); momentumRaf = 0; }
+    };
+
     term.element?.addEventListener('touchstart', (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
+      stopMomentum();
+      touchY = e.touches[0].clientY;
+      velocity = 0;
+      lastTime = Date.now();
     }, { passive: true });
 
     term.element?.addEventListener('touchmove', (e: TouchEvent) => {
-      const dy = touchStartY - e.touches[0].clientY;
-      touchStartY = e.touches[0].clientY;
+      const now = Date.now();
+      const newY = e.touches[0].clientY;
+      const dy = touchY - newY;
+      const dt = Math.max(now - lastTime, 1);
+      velocity = (dy / dt) * 16; // normalize to ~60fps
+      touchY = newY;
+      lastTime = now;
+
       const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
       term.scrollLines(Math.round(dy / lineHeight));
       e.preventDefault();
     }, { passive: false });
+
+    term.element?.addEventListener('touchend', () => {
+      const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
+      const decay = () => {
+        if (Math.abs(velocity) < 0.5) { stopMomentum(); return; }
+        const lines = Math.round(velocity / lineHeight);
+        if (lines !== 0) term.scrollLines(lines);
+        velocity *= 0.95;
+        momentumRaf = requestAnimationFrame(decay);
+      };
+      momentumRaf = requestAnimationFrame(decay);
+    }, { passive: true });
 
     // Resize handling
     const handleResize = () => {
