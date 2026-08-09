@@ -17,6 +17,7 @@ import { grepCommand } from '../commands/builtins/grep';
 import { catCommand } from '../commands/builtins/cat';
 import { themeCommand } from '../commands/builtins/theme';
 import { getTheme } from '../themes/themes';
+import { drawAsciiToCanvas, canvasToIIP } from '../utils/asciiImage';
 
 export interface TerminalState {
   cwd: string;
@@ -69,6 +70,7 @@ export function useTerminal() {
   const historyIndexRef = useRef(-1);
   const prevCwdRef = useRef('/home/user');
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const avatarIIPRef = useRef<string | null>(null);
 
   // Tab-completion cycle state
   const tabCycle = useRef<{
@@ -145,7 +147,7 @@ export function useTerminal() {
     }));
 
     // Clear rich content for non-cat commands
-    if (!['cat', 'whoami'].includes(parsed.cmd)) {
+    if (!['cat'].includes(parsed.cmd)) {
       setRichContent(null);
     }
 
@@ -176,6 +178,7 @@ export function useTerminal() {
       setRichContent,
       theme: themeRef.current,
       setTheme,
+      getAvatarIIP: () => avatarIIPRef.current,
     };
 
     const result = registry.execute(ctx, parsed);
@@ -194,6 +197,7 @@ export function useTerminal() {
     const { Terminal } = await import('@xterm/xterm');
     const { FitAddon } = await import('@xterm/addon-fit');
     const { WebLinksAddon } = await import('@xterm/addon-web-links');
+    const { ImageAddon } = await import('@xterm/addon-image');
 
     // Abort if a newer initTerminal call has started (StrictMode remount)
     if (gen !== initGenRef.current) {
@@ -221,6 +225,7 @@ export function useTerminal() {
 
     term.loadAddon(fitAddon);
     term.loadAddon(webLinksAddon);
+    term.loadAddon(new ImageAddon());
 
     if (containerRef.current) {
       term.open(containerRef.current);
@@ -546,6 +551,20 @@ export function useTerminal() {
     term.writeln('');
 
     writePrompt();
+
+    // Pre-load avatar as inline image (IIP)
+    const img = new Image();
+    img.onload = () => {
+      const cols = 60;
+      const rows = Math.floor(cols * (img.naturalHeight / img.naturalWidth) * 0.5);
+      const CELL = 6;
+      const canvas = document.createElement('canvas');
+      canvas.width = cols * CELL;
+      canvas.height = rows * CELL;
+      drawAsciiToCanvas(img, canvas, cols);
+      avatarIIPRef.current = canvasToIIP(canvas);
+    };
+    img.src = '/avatar.jpg';
 
     return () => {
       resizeObserver.disconnect();
