@@ -13,7 +13,6 @@ export const lsCommand: CommandHandler = (ctx, parsed) => {
   }
 
   if (node.type !== 'dir') {
-    // It's a file — just print its name
     const name = target.split('/').pop() || target;
     return { output: name + '\r\n' };
   }
@@ -33,5 +32,26 @@ export const lsCommand: CommandHandler = (ctx, parsed) => {
     return { output };
   }
 
-  return { output: entries.join('  ') + '\r\n' };
+  // Column layout to prevent splitting filenames
+  if (entries.length === 0) return { output: '' };
+
+  const cols = ctx.termCols || 80;
+  const maxLen = Math.max(...entries.map(e => e.length));
+  const colWidth = maxLen + 2; // 2 spaces between columns
+  const numCols = Math.max(1, Math.floor(cols / colWidth));
+  const numRows = Math.ceil(entries.length / numCols);
+
+  let output = '';
+  for (let row = 0; row < numRows; row++) {
+    let line = '';
+    for (let col = 0; col < numCols; col++) {
+      const idx = col * numRows + row;
+      if (idx < entries.length) {
+        line += entries[idx].padEnd(colWidth);
+      }
+    }
+    output += line.trimEnd() + '\r\n';
+  }
+
+  return { output };
 };

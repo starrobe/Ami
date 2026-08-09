@@ -176,6 +176,7 @@ export function useTerminal() {
       setRichContent,
       theme: themeRef.current,
       setTheme,
+      termCols: term.cols,
     };
 
     const result = registry.execute(ctx, parsed);
