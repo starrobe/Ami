@@ -1,6 +1,7 @@
 import type { DirNode, FSEntry } from '../types';
 import aboutContent from './content/about.md?raw';
 import helloWorldContent from './content/blog/hello-world.md?raw';
+import testMediaContent from './content/blog/test-media.md?raw';
 import amiTerminalContent from './content/projects/ami-terminal.md?raw';
 
 export function createInitialFS(): DirNode {
@@ -84,6 +85,10 @@ export function createInitialFS(): DirNode {
                     content: helloWorldContent,
                   },
                   // Common prefix "hello-"
+                  'test-media.md': {
+                    type: 'file',
+                    content: testMediaContent,
+                  },
                   'hello-react.md': {
                     type: 'file',
                     content: '---\ntitle: Hello React\n---\n# Hello React\n',
