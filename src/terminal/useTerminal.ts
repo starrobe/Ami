@@ -87,9 +87,8 @@ export function useTerminal() {
   useEffect(() => {
     const theme = getTheme(state.theme);
 
-    // Page background and titlebar
+    // Page background
     document.documentElement.style.setProperty('--ami-bg', theme.background);
-    document.documentElement.style.setProperty('--ami-titlebar-bg', theme.black);
 
     const term = xtermRef.current;
     if (!term) return;
