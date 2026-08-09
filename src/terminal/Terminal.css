@@ -30,7 +30,21 @@ html, body, #root {
   flex: 1;
   overflow: hidden;
   min-width: 0;
-  touch-action: none;
+}
+
+/* Mobile: remove overflow to allow native touch scroll in xterm viewport */
+@media (max-width: 768px) {
+  .terminal-xterm {
+    overflow: visible;
+  }
+
+  .terminal-xterm .xterm {
+    height: 100% !important;
+  }
+
+  .terminal-xterm .xterm-viewport {
+    height: 100% !important;
+  }
 }
 
 .terminal-xterm .xterm {
