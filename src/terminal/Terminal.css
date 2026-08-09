@@ -19,6 +19,45 @@ html, body, #root {
   background: var(--ami-bg, #0a0a0a);
 }
 
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: var(--ami-titlebar-bg, #161B22);
+  border-bottom: 1px solid #30363D;
+  padding: 0 12px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.titlebar-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot-red { background: #FF5F56; }
+.dot-yellow { background: #FFBD2E; }
+.dot-green { background: #27C93F; }
+
+.titlebar-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #8B949E;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.titlebar-spacer {
+  flex: 1;
+}
+
 .terminal-content {
   flex: 1;
   display: flex;

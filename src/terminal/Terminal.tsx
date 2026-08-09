@@ -25,6 +25,15 @@ export default function Terminal() {
 
   return (
     <div className="terminal-shell">
+      <div className="terminal-titlebar">
+        <div className="titlebar-dots">
+          <span className="dot dot-red" />
+          <span className="dot dot-yellow" />
+          <span className="dot dot-green" />
+        </div>
+        <span className="titlebar-text">Ami — Terminal</span>
+        <div className="titlebar-spacer" />
+      </div>
       <div className="terminal-content">
         <div ref={containerRef} className="terminal-xterm" />
         {state.richContent && (
