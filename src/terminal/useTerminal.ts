@@ -17,6 +17,7 @@ import { grepCommand } from '../commands/builtins/grep';
 import { catCommand } from '../commands/builtins/cat';
 import { themeCommand } from '../commands/builtins/theme';
 import { getTheme } from '../themes/themes';
+import { WELCOME_BANNER } from '../config';
 
 export interface TerminalState {
   cwd: string;
@@ -539,14 +540,9 @@ export function useTerminal() {
       resizeObserver.observe(containerRef.current);
     }
 
-    // Write welcome message
+    // Write welcome message with configurable ASCII banner
     term.write('\x1b[37m');
-    term.writeln('');
-    term.writeln('    ___              _ ');
-    term.writeln('   /   |  ____ ___  (_)');
-    term.writeln('  / /| | / __ `__ \\/ / ');
-    term.writeln(' / ___ |/ / / / / / /  ');
-    term.writeln('/_/  |_/_/ /_/ /_/_/   ');
+    WELCOME_BANNER.split('\n').forEach(line => term.writeln(line));
     term.write('\x1b[0m');
     term.writeln('');
     term.writeln('Welcome to Ami Terminal v1.0.0');
