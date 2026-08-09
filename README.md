@@ -1,32 +1,67 @@
-# React + TypeScript + Vite
+# Ami Terminal
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A personal terminal-style website. Type commands, browse files, read blog posts — just like a real Linux terminal.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # production build → dist/
+npm run preview    # preview production build
+npm test           # run tests
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `ls` | List directory (`-l` detail, `-a` all) |
+| `cd <dir>` | Change directory (`..` / `~` / `-`) |
+| `cat <file>` | Preview files (`.md` → rich Markdown, images → preview, text → plain) |
+| `grep <pattern> <file>` | Search text (`-i` case, `-n` line numbers, `-r` recursive, `-t` tag) |
+| `echo <text>` | Print text (`-n` no newline) |
+| `pwd` | Print working directory |
+| `whoami` | Show profile panel |
+| `help` | List all commands |
+| `history` | Command history |
+| `clear` / `Ctrl+L` | Clear screen |
+| `theme` | Switch color theme |
+
+## Features
+
+- **Full terminal emulation** via xterm.js 6
+- **Tab completion** with cycling (Tab / Shift+Tab)
+- **Fish-style autosuggestions** from command history (→ to accept)
+- **Inline cursor movement** (← → arrows, mid-line editing)
+- **Rich Markdown** with GFM tables & LaTeX math ($E=mc^2$)
+- **Image preview** for JPG/PNG/GIF
+- **Virtual filesystem** — drop `.md` files in `src/fs/content/`, auto-discovered
+- **Configurable profile** in `src/config.ts`
+
+## Project Structure
+
+```
+src/
+├── terminal/       # xterm.js wrapper
+├── commands/       # command implementations
+├── fs/             # virtual filesystem
+├── output/         # MarkdownView, CSS
+├── themes/         # color schemes
+├── utils/          # column layout
+├── hooks/          # useSyncedRef
+├── components/     # ErrorBoundary
+└── config.ts       # profile info, avatar URL
+```
+
+## Tech Stack
+
+- React 19 + TypeScript 7
+- xterm.js 6
+- react-markdown + KaTeX
+- Vite 8
+- Vitest
+
+## License
+
+MIT
