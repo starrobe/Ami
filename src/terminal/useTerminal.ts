@@ -260,7 +260,7 @@ export function useTerminal() {
 
     const term = new Terminal({
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-      fontSize: 15,
+      fontSize: 16,
       lineHeight: 1.5,
       theme: {
         background: '#0a0a0a',

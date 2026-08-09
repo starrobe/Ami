@@ -62,17 +62,17 @@ html, body, #root {
   justify-content: center;
 }
 
-.whoami-avatar-wrap .ascii-canvas {
-  width: 50% !important;
-  max-width: 50% !important;
-  height: auto !important;
+.whoami-img {
+  display: block;
+  width: 120%;
+  max-width: 120%;
+  height: auto;
   margin: 0 auto;
-  display: block !important;
 }
 
 .whoami-info {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
   flex: 1;
   display: flex;
@@ -83,7 +83,7 @@ html, body, #root {
 
 .whoami-info {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
 }
 

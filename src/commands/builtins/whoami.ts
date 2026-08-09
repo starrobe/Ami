@@ -1,6 +1,5 @@
 import React from 'react';
 import type { CommandHandler } from '../../types';
-import AsciiAvatar from '../../output/AsciiAvatar';
 
 const WhoamiPanel = () => {
   const info: [string, string][] = [
@@ -14,9 +13,10 @@ const WhoamiPanel = () => {
 
   return React.createElement('div', { className: 'whoami-panel' },
     React.createElement('div', { className: 'whoami-avatar-wrap' },
-      React.createElement(AsciiAvatar, {
-        url: '/avatar.png',
-        maxWidth: 300,
+      React.createElement('img', {
+        src: '/avatar.png',
+        className: 'whoami-img',
+        alt: 'avatar',
       })
     ),
     React.createElement('div', { className: 'whoami-info' },
