@@ -42,6 +42,57 @@ function formatMatchList(matches: string[], selectedIndex: number): string {
   return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
 }
 
+async function precomputeAvatar() {
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject();
+      img.src = '/avatar.jpg';
+    });
+
+    const maxWidth = 60;
+    const cols = Math.min(maxWidth, img.naturalWidth);
+    const rows = Math.floor(cols * (img.naturalHeight / img.naturalWidth) * 0.35);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cols;
+    canvas.height = rows;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0, cols, rows);
+    const data = ctx.getImageData(0, 0, cols, rows).data;
+
+    // Find brightness range
+    let minB = 255, maxB = 0;
+    for (let i = 0; i < cols * rows; i++) {
+      const b = 0.299 * data[i*4] + 0.587 * data[i*4+1] + 0.114 * data[i*4+2];
+      if (b < minB) minB = b;
+      if (b > maxB) maxB = b;
+    }
+    const range = maxB - minB || 1;
+    const CHARS = '@%#*+=-:. ';
+
+    let result = '\r\n';
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const i = (y * cols + x) * 4;
+        const r = data[i], g = data[i+1], b = data[i+2];
+        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+        const normalized = (brightness - minB) / range;
+        const ci = Math.floor(normalized * (CHARS.length - 1));
+        result += `\x1b[38;2;${r};${g};${b}m${CHARS[Math.max(0, Math.min(ci, CHARS.length - 1))]}`;
+      }
+      result += '\x1b[0m\r\n';
+    }
+
+    (window as any).__avatarText = result;
+  } catch {
+    (window as any).__avatarText = '';
+  }
+}
+
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
   const fitAddonRef = useRef<any>(null);
@@ -145,7 +196,7 @@ export function useTerminal() {
     }));
 
     // Clear rich content for non-cat commands
-    if (!['cat', 'whoami'].includes(parsed.cmd)) {
+    if (parsed.cmd !== 'cat') {
       setRichContent(null);
     }
 
@@ -556,6 +607,9 @@ export function useTerminal() {
     term.writeln('');
 
     writePrompt();
+
+    // Pre-compute ASCII avatar for whoami command
+    precomputeAvatar();
 
     return () => {
       resizeObserver.disconnect();

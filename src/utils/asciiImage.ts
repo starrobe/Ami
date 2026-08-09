@@ -20,11 +20,10 @@ export function drawAsciiToCanvas(
   const pixels = imageData.data;
   const pixelCount = cols * rows;
 
-  // Pass 1: brightness range (skip transparent pixels)
+  // Pass 1: brightness range
   let minBright = 255, maxBright = 0;
   for (let i = 0; i < pixelCount; i++) {
     const idx = i * 4;
-    if (pixels[idx + 3] < 128) continue; // skip transparent
     const brightness = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
     if (brightness < minBright) minBright = brightness;
     if (brightness > maxBright) maxBright = brightness;
@@ -44,22 +43,29 @@ export function drawAsciiToCanvas(
   canvas.height = Math.ceil(rows * cellH);
 
   ctx.font = `${cellH}px monospace`;
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
 
-  // Pass 2: draw characters (skip transparent pixels)
+  // Pass 2: draw characters
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const idx = (y * cols + x) * 4;
-      if (pixels[idx + 3] < 128) continue; // skip transparent
-      const r = pixels[idx];
-      const g = pixels[idx + 1];
-      const b = pixels[idx + 2];
+      let r = pixels[idx];
+      let g = pixels[idx + 1];
+      let b = pixels[idx + 2];
       const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-      const normalized = (brightness - minBright) / range;
+      let normalized = (brightness - minBright) / range;
+      // Gamma lift — push mid-tones toward lighter characters
+      normalized = Math.pow(normalized, 0.6);
       const charIndex = Math.floor(normalized * (CHARS.length - 1));
+
+      // Saturation boost — shift colors away from gray
+      const gray = (r + g + b) / 3;
+      const sat = 1.3;
+      r = Math.min(255, Math.max(0, gray + (r - gray) * sat));
+      g = Math.min(255, Math.max(0, gray + (g - gray) * sat));
+      b = Math.min(255, Math.max(0, gray + (b - gray) * sat));
 
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillText(CHARS[Math.max(0, Math.min(charIndex, CHARS.length - 1))], x * charWidth, y * cellH);
