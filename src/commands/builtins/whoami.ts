@@ -1,13 +1,9 @@
-import React from 'react';
 import type { CommandHandler } from '../../types';
-import AsciiAvatar from '../../output/AsciiAvatar';
 
 export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
-  ctx.setRichContent(
-    React.createElement(AsciiAvatar, {
-      url: '/avatar.jpg',
-      maxWidth: 400,
-    })
-  );
+  const avatar = ctx.getAsciiAvatar();
+  if (avatar) {
+    return { output: '\r\n' + avatar + 'user\r\n' };
+  }
   return { output: 'user\r\n' };
 };

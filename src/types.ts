@@ -29,6 +29,7 @@ export interface CommandContext {
   setRichContent: (node: ReactNode | null) => void;
   theme: string;
   setTheme: (name: string) => void;
+  getAsciiAvatar: () => string | null;
 }
 
 export type CommandResult = {
