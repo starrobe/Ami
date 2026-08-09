@@ -26,12 +26,12 @@ export default function Terminal() {
   return (
     <div className="terminal-shell">
       <div className="terminal-content">
-        <div ref={containerRef} className="terminal-xterm" />
         {state.richContent && (
           <div className="terminal-rich">
             {state.richContent}
           </div>
         )}
+        <div ref={containerRef} className="terminal-xterm" />
       </div>
     </div>
   );
