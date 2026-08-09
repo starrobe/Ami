@@ -32,20 +32,6 @@ html, body, #root {
   min-width: 0;
 }
 
-/* Mobile: pass touch events to xterm.js */
-@media (max-width: 768px) {
-  .terminal-xterm,
-  .terminal-xterm .xterm,
-  .terminal-xterm .xterm-viewport {
-    touch-action: none;
-  }
-
-  .terminal-rich {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
 .terminal-xterm .xterm {
   /* xterm.js manages its own internal dimensions */
 }
@@ -131,7 +117,7 @@ html, body, #root {
   display: none;
 }
 
-/* Mobile: stack vertically */
+/* Mobile: stack vertically, pass touch to xterm.js */
 @media (max-width: 768px) {
   .terminal-content {
     flex-direction: column;
@@ -142,6 +128,10 @@ html, body, #root {
     min-height: 0;
   }
 
+  .terminal-xterm .xterm-viewport {
+    touch-action: none;
+  }
+
   .terminal-rich {
     flex: 1;
     min-height: 0;
@@ -149,13 +139,6 @@ html, body, #root {
     border-top: 1px solid #30363D;
     width: 100%;
     max-width: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .whoami-panel {
-    flex-direction: column;
-    align-items: center;
   }
 
   .whoami-img {

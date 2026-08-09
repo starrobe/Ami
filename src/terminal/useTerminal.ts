@@ -596,34 +596,28 @@ export function useTerminal() {
 
     // Touch scroll with momentum (xterm.js lacks native touch scroll)
     let touchY = 0, velocity = 0, lastTime = 0, momentumRaf = 0;
+    const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
 
     const stopMomentum = () => {
       if (momentumRaf) { cancelAnimationFrame(momentumRaf); momentumRaf = 0; }
     };
-
-    term.element?.addEventListener('touchstart', (e: TouchEvent) => {
+    const onTouchStart = (e: TouchEvent) => {
       stopMomentum();
       touchY = e.touches[0].clientY;
       velocity = 0;
       lastTime = Date.now();
-    }, { passive: true });
-
-    term.element?.addEventListener('touchmove', (e: TouchEvent) => {
+    };
+    const onTouchMove = (e: TouchEvent) => {
       const now = Date.now();
       const newY = e.touches[0].clientY;
       const dy = touchY - newY;
-      const dt = Math.max(now - lastTime, 1);
-      velocity = (dy / dt) * 16; // normalize to ~60fps
+      velocity = (dy / Math.max(now - lastTime, 1)) * 16;
       touchY = newY;
       lastTime = now;
-
-      const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
       term.scrollLines(Math.round(dy / lineHeight));
       e.preventDefault();
-    }, { passive: false });
-
-    term.element?.addEventListener('touchend', () => {
-      const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
+    };
+    const onTouchEnd = () => {
       const decay = () => {
         if (Math.abs(velocity) < 0.5) { stopMomentum(); return; }
         const lines = Math.round(velocity / lineHeight);
@@ -632,7 +626,11 @@ export function useTerminal() {
         momentumRaf = requestAnimationFrame(decay);
       };
       momentumRaf = requestAnimationFrame(decay);
-    }, { passive: true });
+    };
+
+    term.element?.addEventListener('touchstart', onTouchStart, { passive: true });
+    term.element?.addEventListener('touchmove', onTouchMove, { passive: false });
+    term.element?.addEventListener('touchend', onTouchEnd, { passive: true });
 
     // Resize handling
     const handleResize = () => {
@@ -657,6 +655,10 @@ export function useTerminal() {
     writePrompt();
 
     return () => {
+      stopMomentum();
+      term.element?.removeEventListener('touchstart', onTouchStart);
+      term.element?.removeEventListener('touchmove', onTouchMove);
+      term.element?.removeEventListener('touchend', onTouchEnd);
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
       term.dispose();
