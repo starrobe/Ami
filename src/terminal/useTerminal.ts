@@ -176,7 +176,6 @@ export function useTerminal() {
       setRichContent,
       theme: themeRef.current,
       setTheme,
-      term,
     };
 
     const result = registry.execute(ctx, parsed);
@@ -542,14 +541,12 @@ export function useTerminal() {
 
     // Write welcome message
     term.write('\x1b[37m');
-    term.writeln('   ___           _');
-    term.writeln('  / _ \\         (_)');
-    term.writeln(' / /_\\ \\_ __ ___ _');
-    term.writeln(' |  _  | \'  \\  \\ |');
-    term.writeln(' | | | | | | |\\ \\ |');
-    term.writeln(' \\_| |_/_| |_/__/ |');
-    term.writeln('               __/ |');
-    term.writeln('              |___/');
+    term.writeln('');
+    term.writeln('    ___              _ ');
+    term.writeln('   /   |  ____ ___  (_)');
+    term.writeln('  / /| | / __ `__ \\/ / ');
+    term.writeln(' / ___ |/ / / / / / /  ');
+    term.writeln('/_/  |_/_/ /_/ /_/_/   ');
     term.write('\x1b[0m');
     term.writeln('');
     term.writeln('Welcome to Ami Terminal v1.0.0');
