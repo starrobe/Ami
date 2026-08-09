@@ -540,17 +540,9 @@ export function useTerminal() {
     }
 
     // Write welcome message
-    term.write('\x1b[37m');
-    term.writeln('               __');
-    term.writeln('              / _)');
-    term.writeln('     _.----._/ /');
-    term.writeln('    /         /');
-    term.writeln(' __/ (  | (  |');
-    term.writeln('/__.-|_|--|_|');
-    term.write('\x1b[0m');
     term.writeln('');
     term.writeln('Welcome to Ami Terminal v1.0.0');
-    term.write('Type \x1b[37mhelp\x1b[0m to see available commands.');
+    term.writeln('Type \x1b[37mhelp\x1b[0m to see available commands.');
     term.writeln('');
 
     writePrompt();
