@@ -594,6 +594,20 @@ export function useTerminal() {
       }
     });
 
+    // Touch scroll support for mobile (xterm.js lacks native touch scroll)
+    let touchStartY = 0;
+    term.element?.addEventListener('touchstart', (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    term.element?.addEventListener('touchmove', (e: TouchEvent) => {
+      const dy = touchStartY - e.touches[0].clientY;
+      touchStartY = e.touches[0].clientY;
+      const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
+      term.scrollLines(Math.round(dy / lineHeight));
+      e.preventDefault();
+    }, { passive: false });
+
     // Resize handling
     const handleResize = () => {
       fitAddon.fit();
