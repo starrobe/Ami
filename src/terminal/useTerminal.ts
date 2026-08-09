@@ -5,7 +5,8 @@ import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { profile, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
-import { commandNames, fileArgCommands } from '../commands/descriptions';
+import { commandNames, fileArgCommands, commandFlags } from '../commands/descriptions';
+import { fuzzySort } from '../utils/fuzzyMatch';
 import { useSyncedRef } from '../hooks/useSyncedRef';
 import { parseCommand } from '../commands/parser';
 import { createRegistry } from '../commands/registry';
@@ -501,9 +502,19 @@ export function useTerminal() {
 
           if (isCommand) {
             matchPrefix = partial.toLowerCase();
-            matchList = commandNames.filter(c => c.startsWith(matchPrefix));
+            matchList = fuzzySort(matchPrefix, commandNames);
             buildSuffix = (m: string) => m.slice(matchPrefix.length) + ' ';
           } else {
+            // Flag completion — when partial starts with '-'
+            if (partial.startsWith('-')) {
+              const cmd = tokens[0]?.toLowerCase();
+              const flags = commandFlags[cmd] || [];
+              matchList = fuzzySort(partial, flags);
+              matchPrefix = partial;
+              buildSuffix = (m: string) => m.slice(matchPrefix.length) + ' ';
+              // fall through to normal completion flow below
+              // ...
+            } else {
             // Commands that don't take file arguments — skip path completion
             const cmd = tokens[0]?.toLowerCase();
             if (cmd && !fileArgCommands.includes(cmd)) return;
@@ -515,7 +526,7 @@ export function useTerminal() {
               const dirNode = getNode(fsRef.current, resolvedDir);
               if (dirNode && dirNode.type === 'dir') {
                 const children = Object.keys(dirNode.children);
-                matchList = children.filter(c => c.startsWith(matchPrefix));
+                matchList = fuzzySort(matchPrefix, children);
                 const basePath = pathSegs.slice(0, -1).join('/');
                 buildSuffix = (m: string) => {
                   const entry = dirNode.children[m];
@@ -526,6 +537,7 @@ export function useTerminal() {
               }
             } catch { /* ignore */ }
           }
+        }
 
           if (matchList.length === 0) return;
 
