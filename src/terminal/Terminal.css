@@ -32,18 +32,17 @@ html, body, #root {
   min-width: 0;
 }
 
-/* Mobile: remove overflow to allow native touch scroll in xterm viewport */
+/* Mobile: pass touch events to xterm.js */
 @media (max-width: 768px) {
-  .terminal-xterm {
-    overflow: visible;
-  }
-
-  .terminal-xterm .xterm {
-    height: 100% !important;
-  }
-
+  .terminal-xterm,
+  .terminal-xterm .xterm,
   .terminal-xterm .xterm-viewport {
-    height: 100% !important;
+    touch-action: none;
+  }
+
+  .terminal-rich {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
