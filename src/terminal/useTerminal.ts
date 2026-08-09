@@ -6,6 +6,7 @@ import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { profile, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
 import { commandNames, fileArgCommands } from '../commands/descriptions';
+import { useSyncedRef } from '../hooks/useSyncedRef';
 import { parseCommand } from '../commands/parser';
 import { createRegistry } from '../commands/registry';
 import { createHelpCommand } from '../commands/builtins/help';
@@ -63,15 +64,10 @@ export function useTerminal() {
     richContent: null,
   });
 
-  // Refs to avoid stale closure in the terminal onData handler
-  const cwdRef = useRef(state.cwd);
-  const historyRef = useRef(state.history);
-  const themeRef = useRef(state.theme);
-
-  // Keep refs in sync with state
-  useEffect(() => { cwdRef.current = state.cwd; }, [state.cwd]);
-  useEffect(() => { historyRef.current = state.history; }, [state.history]);
-  useEffect(() => { themeRef.current = state.theme; }, [state.theme]);
+  // Refs synced with state to avoid stale closure in onData handler
+  const cwdRef = useSyncedRef(state.cwd);
+  const historyRef = useSyncedRef(state.history);
+  const themeRef = useSyncedRef(state.theme);
 
   const fsRef = useRef<DirNode>(createInitialFS());
   const inputBufferRef = useRef('');

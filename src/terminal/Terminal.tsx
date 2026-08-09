@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTerminal } from './useTerminal';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import './Terminal.css';
 
 export default function Terminal() {
@@ -28,9 +29,11 @@ export default function Terminal() {
       <div className="terminal-content">
         <div ref={containerRef} className="terminal-xterm" />
         {state.richContent && (
-          <div className="terminal-rich">
-            {state.richContent}
-          </div>
+          <ErrorBoundary>
+            <div className="terminal-rich">
+              {state.richContent}
+            </div>
+          </ErrorBoundary>
         )}
       </div>
     </div>

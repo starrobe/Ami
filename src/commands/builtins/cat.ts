@@ -1,7 +1,6 @@
 import React from 'react';
 import type { CommandHandler } from '../../types';
 import { resolvePath, getNode } from '../../fs/filesystem';
-import MarkdownView from '../../output/MarkdownView';
 
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico'];
 
@@ -35,15 +34,17 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
     return { output: '' };
   }
 
-  // .md files → rich Markdown rendering
+  // .md files → rich Markdown rendering (lazy loaded)
   if (target.endsWith('.md')) {
     const content = node.content;
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     const body = frontmatterMatch ? frontmatterMatch[2] : content;
 
-    ctx.setRichContent(
-      React.createElement(MarkdownView, { content: body })
-    );
+    import('../../output/MarkdownView').then(({ default: MarkdownView }) => {
+      ctx.setRichContent(
+        React.createElement(MarkdownView, { content: body })
+      );
+    });
     return { output: '' };
   }
 
