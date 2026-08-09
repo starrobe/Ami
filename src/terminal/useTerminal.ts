@@ -145,7 +145,7 @@ export function useTerminal() {
     }));
 
     // Clear rich content for non-cat commands
-    if (!['cat', 'whoami'].includes(parsed.cmd)) {
+    if (parsed.cmd !== 'cat') {
       setRichContent(null);
     }
 
@@ -176,6 +176,7 @@ export function useTerminal() {
       setRichContent,
       theme: themeRef.current,
       setTheme,
+      term,
     };
 
     const result = registry.execute(ctx, parsed);

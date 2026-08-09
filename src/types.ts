@@ -29,6 +29,7 @@ export interface CommandContext {
   setRichContent: (node: ReactNode | null) => void;
   theme: string;
   setTheme: (name: string) => void;
+  term?: any; // xterm.js Terminal instance for advanced features (decorations, markers)
 }
 
 export type CommandResult = {
