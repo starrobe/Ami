@@ -381,6 +381,7 @@ export function useTerminal() {
 
       // Handle arrow up (history)
       if (data === '\x1b[A') {
+        suggestionRef.current = '';
         const history = historyRef.current;
         if (history.length === 0) return;
         if (historyIndexRef.current === -1) {
@@ -401,6 +402,7 @@ export function useTerminal() {
 
       // Handle arrow down (history)
       if (data === '\x1b[B') {
+        suggestionRef.current = '';
         const history = historyRef.current;
         while (inputBufferRef.current.length > 0) {
           inputBufferRef.current = inputBufferRef.current.slice(0, -1);
@@ -477,6 +479,7 @@ export function useTerminal() {
         const buffer = inputBufferRef.current;
         if (buffer.length === 0) return;
 
+        suggestionRef.current = '';
         const prev = tabCycle.current;
 
         // Check if continuing a previous cycle
