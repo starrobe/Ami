@@ -1,6 +1,6 @@
 import pkg from '../package.json';
 
-export interface ProfileInfo {
+interface ProfileInfo {
   key: string;
   value: string;
   href?: string;

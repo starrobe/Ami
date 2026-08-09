@@ -21,7 +21,7 @@ export default function Terminal() {
       disposed = true;
       cleanupFn?.();
     };
-  }, []);
+  }, [initTerminal]);
 
   return (
     <div className="terminal-shell">

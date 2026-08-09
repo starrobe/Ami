@@ -43,7 +43,7 @@ export default function MarkdownView({ content }: Props) {
           ),
           hr: () => <hr className="md-hr" />,
           img: ({ src, alt }: { src?: string; alt?: string }) => (
-            <img className="md-img" src={src} alt={alt} style={{ maxWidth: '100%' }} />
+            <img className="md-img" src={src} alt={alt} />
           ),
           table: ({ children }) => <table className="md-table">{children}</table>,
           thead: ({ children }) => <thead className="md-thead">{children}</thead>,

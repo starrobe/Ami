@@ -1,5 +1,6 @@
 import type { CommandHandler } from '../../types';
 
 export const echoCommand: CommandHandler = (_ctx, parsed) => {
-  return { output: parsed.args.join(' ') + '\r\n' };
+  const text = parsed.args.join(' ');
+  return { output: parsed.flags.includes('n') ? text : text + '\r\n' };
 };

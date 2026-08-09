@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { profile, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
-import { commandNames } from '../commands/descriptions';
+import { commandNames, fileArgCommands } from '../commands/descriptions';
 import { parseCommand } from '../commands/parser';
 import { createRegistry } from '../commands/registry';
 import { createHelpCommand } from '../commands/builtins/help';
@@ -55,7 +55,6 @@ function formatMatchList(matches: string[], selectedIndex: number, termCols: num
 
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
-  const fitAddonRef = useRef<any>(null);
   const initGenRef = useRef(0);
   const [state, setState] = useState<TerminalState>({
     cwd: '/home/user',
@@ -277,8 +276,6 @@ export function useTerminal() {
     }
 
     xtermRef.current = term;
-    fitAddonRef.current = fitAddon;
-
     // Handle input
     term.onData((data) => {
       // Reset tab-cycle state on any non-Tab/non-ShiftTab key
@@ -513,7 +510,7 @@ export function useTerminal() {
           } else {
             // Commands that don't take file arguments — skip path completion
             const cmd = tokens[0]?.toLowerCase();
-            if (cmd && !['cat', 'cd', 'ls', 'grep'].includes(cmd)) return;
+            if (cmd && !fileArgCommands.includes(cmd)) return;
             try {
               const pathSegs = partial.split('/');
               matchPrefix = pathSegs[pathSegs.length - 1] || '';
@@ -623,6 +620,5 @@ export function useTerminal() {
     containerRef,
     initTerminal,
     state,
-    fitAddonRef,
   };
 }
