@@ -1,25 +1,34 @@
 import type { DirNode, FSEntry } from '../types';
 
-// Auto-discover all .md files under content/
-const contentModules = import.meta.glob('./content/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+// Auto-discover all files under content/
+const rawTextModules = {
+  ...(import.meta.glob('./content/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>),
+  ...(import.meta.glob('./content/**/*.txt', { query: '?raw', import: 'default', eager: true }) as Record<string, string>),
+};
+// All other files — get their URL (works for images, PDFs, etc.)
+const urlModules = import.meta.glob('./content/**/*', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
+
+function getFileContent(filePath: string): string {
+  if (rawTextModules[filePath]) return rawTextModules[filePath];
+  // Return the URL for binary / unknown types
+  return urlModules[filePath] || '[binary]';
+}
 
 function buildContentTree(): Record<string, FSEntry> {
   const root: Record<string, FSEntry> = {};
 
-  for (const [filePath, content] of Object.entries(contentModules)) {
-    // filePath: ./content/<relative>.md → strip prefix to get virtual path
+  for (const filePath of Object.keys(urlModules)) {
     const relative = filePath.replace('./content/', '');
-    // relative: e.g. "about.md", "blog/hello-world.md", "projects/ami-terminal.md"
+    if (!relative) continue;
+    const content = getFileContent(filePath);
     const segments = relative.split('/');
     let current = root;
 
     for (let i = 0; i < segments.length; i++) {
       const seg = segments[i];
       if (i === segments.length - 1) {
-        // File
         current[seg] = { type: 'file', content };
       } else {
-        // Directory
         if (!current[seg]) {
           current[seg] = { type: 'dir', children: {} };
         }
@@ -117,13 +126,7 @@ export function getParentPath(path: string): string {
 export function listDir(fs: DirNode, path: string): string[] {
   const node = getNode(fs, path);
   if (!node || node.type !== 'dir') return [];
-  return Object.keys(node.children).sort((a, b) => {
-    const aIsDir = node.children[a].type === 'dir';
-    const bIsDir = node.children[b].type === 'dir';
-    if (aIsDir && !bIsDir) return -1;
-    if (!aIsDir && bIsDir) return 1;
-    return a.localeCompare(b);
-  });
+  return Object.keys(node.children).sort((a, b) => a.localeCompare(b));
 }
 
 export function isDirectory(fs: DirNode, path: string): boolean {

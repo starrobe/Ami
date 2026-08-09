@@ -87,3 +87,29 @@
   border-top: 1px solid #30363D;
   margin: 20px 0;
 }
+
+.markdown-view .md-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px 0;
+  font-size: 0.95em;
+}
+
+.markdown-view .md-th {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.markdown-view .md-td {
+  border: 1px solid #444;
+  padding: 6px 12px;
+  color: #E0E0E0;
+}
+
+.markdown-view .md-tr:hover {
+  background: #141414;
+}

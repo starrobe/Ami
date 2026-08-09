@@ -14,6 +14,9 @@ export function createCdCommand(
 
     if (target === '-') {
       const prev = getPrevCwd();
+      if (prev === ctx.cwd) {
+        return { output: 'cd: no previous directory\r\n' };
+      }
       const prevDisplay = prev.replace('/home/user', '~');
       setPrevCwd(ctx.cwd);
       ctx.setCwd(prev);

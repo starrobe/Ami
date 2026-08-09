@@ -3,6 +3,9 @@ import type { Terminal as XTermType } from '@xterm/xterm';
 import type { DirNode } from '../types';
 import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
+import { profile, appVersion } from '../config';
+import { formatColumns } from '../utils/columnLayout';
+import { commandNames } from '../commands/descriptions';
 import { parseCommand } from '../commands/parser';
 import { createRegistry } from '../commands/registry';
 import { createHelpCommand } from '../commands/builtins/help';
@@ -39,36 +42,15 @@ function findCommonPrefix(strings: string[]): string {
 }
 
 function formatMatchList(matches: string[], selectedIndex: number, termCols: number): string {
-  // Single row — equal spacing
-  if (matches.length <= 6) {
+  if (matches.length <= 8) {
     return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
   }
-
-  // Multi-row — column layout
-  const maxLen = Math.max(...matches.map(m => m.length));
-  const colWidth = maxLen + 2;
-  const maxCols = Math.min(6, Math.floor(termCols / colWidth));
-  const numCols = Math.max(1, Math.min(maxCols, matches.length));
-  const numRows = Math.ceil(matches.length / numCols);
-
-  const rows: string[] = [];
-  for (let row = 0; row < numRows; row++) {
-    let line = '';
-    for (let col = 0; col < numCols; col++) {
-      const idx = col * numRows + row;
-      if (idx < matches.length) {
-        const m = matches[idx];
-        const display = idx === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m;
-        const isLastCol = col === numCols - 1 || (col + 1) * numRows + row >= matches.length;
-        line += display;
-        if (!isLastCol) {
-          line += ' '.repeat(colWidth - m.length);
-        }
-      }
-    }
-    rows.push(line);
+  const formatted = formatColumns(matches, termCols, 9, 8);
+  if (selectedIndex >= 0) {
+    const target = matches[selectedIndex];
+    return formatted.replace(target, '\x1b[7m' + target + '\x1b[0m');
   }
-  return rows.join('\r\n');
+  return formatted;
 }
 
 export function useTerminal() {
@@ -161,7 +143,8 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
-    term.write('\r\n\x1b[37muser@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
+    const userName = (profile.find(p => p.key === 'Name')?.value) || 'user';
+    term.write('\r\n\x1b[37m' + userName + '@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
     term.scrollToBottom();
     term.focus();
   }, []);
@@ -182,6 +165,30 @@ export function useTerminal() {
   const setTheme = useCallback((name: string) => {
     themeRef.current = name;
     setState(prev => ({ ...prev, theme: name }));
+  }, []);
+
+  // Cache the populated registry
+  const registryRef = useRef<ReturnType<typeof createRegistry> | null>(null);
+  const getRegistry = useCallback(() => {
+    if (!registryRef.current) {
+      const registry = createRegistry();
+      registry.register('help', createHelpCommand(registry));
+      registry.register('echo', echoCommand);
+      registry.register('clear', clearCommand);
+      registry.register('pwd', pwdCommand);
+      registry.register('whoami', whoamiCommand);
+      registry.register('history', createHistoryCommand(() => historyRef.current));
+      registry.register('ls', lsCommand);
+      registry.register('cd', createCdCommand(
+        () => prevCwdRef.current,
+        (p: string) => { prevCwdRef.current = p; }
+      ));
+      registry.register('grep', grepCommand);
+      registry.register('cat', catCommand);
+      registry.register('theme', themeCommand);
+      registryRef.current = registry;
+    }
+    return registryRef.current;
   }, []);
 
   const executeCommand = useCallback((input: string) => {
@@ -206,23 +213,7 @@ export function useTerminal() {
       setRichContent(null);
     }
 
-    const registry = createRegistry();
-
-    // Register all commands
-    registry.register('help', createHelpCommand(registry));
-    registry.register('echo', echoCommand);
-    registry.register('clear', clearCommand);
-    registry.register('pwd', pwdCommand);
-    registry.register('whoami', whoamiCommand);
-    registry.register('history', createHistoryCommand(() => historyRef.current));
-    registry.register('ls', lsCommand);
-    registry.register('cd', createCdCommand(
-      () => prevCwdRef.current,
-      (p: string) => { prevCwdRef.current = p; }
-    ));
-    registry.register('grep', grepCommand);
-    registry.register('cat', catCommand);
-    registry.register('theme', themeCommand);
+    const registry = getRegistry();
 
     // Build context using refs for current values
     const ctx = {
@@ -516,9 +507,8 @@ export function useTerminal() {
           let matchPrefix = '';  // the part being matched (last path segment or full command)
 
           if (isCommand) {
-            const cmdNames = ['cat', 'cd', 'clear', 'echo', 'grep', 'help', 'history', 'ls', 'pwd', 'theme', 'whoami'];
             matchPrefix = partial.toLowerCase();
-            matchList = cmdNames.filter(c => c.startsWith(matchPrefix));
+            matchList = commandNames.filter(c => c.startsWith(matchPrefix));
             buildSuffix = (m: string) => m.slice(matchPrefix.length) + ' ';
           } else {
             // Commands that don't take file arguments — skip path completion
@@ -616,7 +606,7 @@ export function useTerminal() {
 
     // Write welcome message
     term.writeln('');
-    term.writeln('Welcome to Ami Terminal v1.0.0');
+    term.writeln(`Welcome to Ami Terminal v${appVersion}`);
     term.writeln('Type \x1b[37mhelp\x1b[0m to see available commands.');
     term.writeln('');
 
