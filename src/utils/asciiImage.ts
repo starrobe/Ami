@@ -1,13 +1,5 @@
 const CHARS = '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^\`\'. ';
 
-export function canvasToIIP(canvas: HTMLCanvasElement): string {
-  const dataUrl = canvas.toDataURL('image/png');
-  const base64 = dataUrl.split(',')[1];
-  // iTerm inline image protocol (IIP)
-  const byteSize = atob(base64).length;
-  return `\x1b]1337;File=size=${byteSize};inline=1:${base64}\x07`;
-}
-
 export function drawAsciiToCanvas(
   image: HTMLImageElement,
   canvas: HTMLCanvasElement,

@@ -36,6 +36,9 @@ export default function MarkdownView({ content }: Props) {
             <blockquote className="md-blockquote">{children}</blockquote>
           ),
           hr: () => <hr className="md-hr" />,
+          img: ({ src, alt }: { src?: string; alt?: string }) => (
+            <img className="md-img" src={src} alt={alt} style={{ maxWidth: '100%' }} />
+          ),
         }}
       >
         {content}

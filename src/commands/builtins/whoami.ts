@@ -1,10 +1,13 @@
+import React from 'react';
 import type { CommandHandler } from '../../types';
+import AsciiAvatar from '../../output/AsciiAvatar';
 
 export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
-  const iip = (ctx as any).getAvatarIIP?.();
-  if (iip) {
-    ctx.appendOutput(iip + '\r\nuser\r\n');
-    return;
-  }
+  ctx.setRichContent(
+    React.createElement(AsciiAvatar, {
+      url: '/avatar.jpg',
+      maxWidth: 400,
+    })
+  );
   return { output: 'user\r\n' };
 };
