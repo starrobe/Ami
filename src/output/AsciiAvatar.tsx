@@ -50,7 +50,7 @@ export default function AsciiAvatar({ url, maxWidth = 120 }: Props) {
         style={{
           display: state === 'done' ? 'block' : 'none',
           width: '100%',
-          maxWidth: '350px',
+          maxWidth: '1000px',
           height: 'auto',
         }}
       />

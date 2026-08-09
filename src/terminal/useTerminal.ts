@@ -77,7 +77,7 @@ export function useTerminal() {
   const initGenRef = useRef(0);
   const [state, setState] = useState<TerminalState>({
     cwd: '/home/user',
-    theme: 'mono',
+    theme: 'default',
     history: [],
     richContent: null,
   });
@@ -103,13 +103,15 @@ export function useTerminal() {
   const showSuggestion = useCallback(() => {
     const term = xtermRef.current;
     if (!term) return;
-    const input = inputBufferRef.current;
-    if (input.length === 0) { suggestionRef.current = ''; return; }
 
     // Clear previous suggestion if any
     if (suggestionRef.current) {
-      term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
+      term.write('\x1b[K');
+      suggestionRef.current = '';
     }
+
+    const input = inputBufferRef.current;
+    if (input.length === 0) return;
 
     // Search history for a match
     const history = historyRef.current;
@@ -299,11 +301,7 @@ export function useTerminal() {
 
       // Handle Enter
       if (data === '\r') {
-        // Clear suggestion
-        if (suggestionRef.current) {
-          term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
-          suggestionRef.current = '';
-        }
+        suggestionRef.current = '';
         const input = inputBufferRef.current;
         term.write('\r\n');
         executeCommand(input);
@@ -318,12 +316,6 @@ export function useTerminal() {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
         if (pos > 0) {
-          // Clear suggestion if present
-          if (suggestionRef.current) {
-            term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
-            suggestionRef.current = '';
-          }
-
           const after = buf.slice(pos);
           inputBufferRef.current = buf.slice(0, pos - 1) + after;
           cursorPosRef.current = pos - 1;
@@ -598,12 +590,6 @@ export function useTerminal() {
       if (data.length === 1 && data.charCodeAt(0) >= 32) {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
-
-        // Clear suggestion if present
-        if (suggestionRef.current) {
-          term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
-          suggestionRef.current = '';
-        }
 
         inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
         cursorPosRef.current = pos + 1;
