@@ -78,21 +78,30 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  padding-left: 16px;
 }
 
-.whoami-info {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 16px;
-  line-height: 1.8;
+.whoami-row {
+  display: flex;
+  align-items: baseline;
 }
 
 .whoami-key {
   color: #888;
+  min-width: 90px;
+  text-align: left;
 }
 
 .whoami-value {
   color: #E0E0E0;
+}
+
+.whoami-link {
+  text-decoration: none;
+}
+
+.whoami-link:hover {
+  text-decoration: underline;
 }
 
 .terminal-rich {

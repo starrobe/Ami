@@ -1,10 +1,39 @@
 import type { DirNode, FSEntry } from '../types';
-import aboutContent from './content/about.md?raw';
-import helloWorldContent from './content/blog/hello-world.md?raw';
-import testMediaContent from './content/blog/test-media.md?raw';
-import amiTerminalContent from './content/projects/ami-terminal.md?raw';
+
+// Auto-discover all .md files under content/
+const contentModules = import.meta.glob('./content/**/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+
+function buildContentTree(): Record<string, FSEntry> {
+  const root: Record<string, FSEntry> = {};
+
+  for (const [filePath, content] of Object.entries(contentModules)) {
+    // filePath: ./content/<relative>.md → strip prefix to get virtual path
+    const relative = filePath.replace('./content/', '');
+    // relative: e.g. "about.md", "blog/hello-world.md", "projects/ami-terminal.md"
+    const segments = relative.split('/');
+    let current = root;
+
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      if (i === segments.length - 1) {
+        // File
+        current[seg] = { type: 'file', content };
+      } else {
+        // Directory
+        if (!current[seg]) {
+          current[seg] = { type: 'dir', children: {} };
+        }
+        current = (current[seg] as DirNode).children;
+      }
+    }
+  }
+
+  return root;
+}
 
 export function createInitialFS(): DirNode {
+  const contentRoot = buildContentTree();
+
   return {
     type: 'dir',
     children: {
@@ -13,102 +42,7 @@ export function createInitialFS(): DirNode {
         children: {
           user: {
             type: 'dir',
-            children: {
-              'about.md': {
-                type: 'file',
-                content: aboutContent,
-              },
-              // Files with common prefix "photo-"
-              'photo-1.jpg': {
-                type: 'file',
-                content: 'binary',
-              },
-              'photo-2.jpg': {
-                type: 'file',
-                content: 'binary',
-              },
-              'photo-3.jpg': {
-                type: 'file',
-                content: 'binary',
-              },
-              // Common prefix "read"
-              'readme.txt': {
-                type: 'file',
-                content: 'Welcome to Ami!',
-              },
-              'receipt.pdf': {
-                type: 'file',
-                content: 'binary',
-              },
-              // Directories with common prefix "doc"
-              'documents': {
-                type: 'dir',
-                children: {
-                  'resume.pdf': { type: 'file', content: 'resume' },
-                  'notes.txt': { type: 'file', content: 'notes' },
-                },
-              },
-              'downloads': {
-                type: 'dir',
-                children: {
-                  'setup.exe': { type: 'file', content: 'binary' },
-                },
-              },
-              projects: {
-                type: 'dir',
-                children: {
-                  'ami-terminal.md': {
-                    type: 'file',
-                    content: amiTerminalContent,
-                  },
-                  // Common prefix "ami-"
-                  'ami-bot.md': {
-                    type: 'file',
-                    content: '---\ntitle: Ami Bot\n---\n# Ami Bot\n',
-                  },
-                  // Common prefix "tui-"
-                  'tui-app.md': {
-                    type: 'file',
-                    content: '---\ntitle: TUI App\n---\n# TUI App\n',
-                  },
-                  'tui-game.md': {
-                    type: 'file',
-                    content: '---\ntitle: TUI Game\n---\n# TUI Game\n',
-                  },
-                },
-              },
-              blog: {
-                type: 'dir',
-                children: {
-                  'hello-world.md': {
-                    type: 'file',
-                    content: helloWorldContent,
-                  },
-                  // Common prefix "hello-"
-                  'test-media.md': {
-                    type: 'file',
-                    content: testMediaContent,
-                  },
-                  'hello-react.md': {
-                    type: 'file',
-                    content: '---\ntitle: Hello React\n---\n# Hello React\n',
-                  },
-                  'hello-vue.md': {
-                    type: 'file',
-                    content: '---\ntitle: Hello Vue\n---\n# Hello Vue\n',
-                  },
-                  // Common prefix "setup-"
-                  'setup-guide.md': {
-                    type: 'file',
-                    content: '---\ntitle: Setup Guide\n---\n# Setup Guide\n',
-                  },
-                  'setup-tips.md': {
-                    type: 'file',
-                    content: '---\ntitle: Setup Tips\n---\n# Setup Tips\n',
-                  },
-                },
-              },
-            },
+            children: contentRoot,
           },
         },
       },
