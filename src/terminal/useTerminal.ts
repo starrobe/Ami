@@ -38,8 +38,34 @@ function findCommonPrefix(strings: string[]): string {
   return common;
 }
 
-function formatMatchList(matches: string[], selectedIndex: number): string {
-  return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
+function formatMatchList(matches: string[], selectedIndex: number, termCols: number): string {
+  const maxLen = Math.max(...matches.map(m => m.length));
+  const colWidth = maxLen + 2;
+  const maxCols = Math.min(6, Math.floor(termCols / colWidth));
+  const numCols = Math.max(1, maxCols);
+  const numRows = Math.ceil(matches.length / numCols);
+
+  const rows: string[] = [];
+  for (let row = 0; row < numRows; row++) {
+    let line = '';
+    for (let col = 0; col < numCols; col++) {
+      const idx = col * numRows + row;
+      if (idx < matches.length) {
+        const m = matches[idx];
+        const display = idx === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m;
+        const isLastCol = col === numCols - 1 || (col + 1) * numRows + row >= matches.length;
+        line += isLastCol ? display : display.padEnd(colWidth + (idx === selectedIndex ? 0 : 0));
+        // Adjust padding for ANSI codes — they take no visible width
+        if (!isLastCol) {
+          const visibleLen = m.length;
+          const padLen = colWidth - visibleLen;
+          if (padLen > 0) line += ' '.repeat(padLen);
+        }
+      }
+    }
+    rows.push(line);
+  }
+  return rows.join('\r\n');
 }
 
 export function useTerminal() {
@@ -388,7 +414,7 @@ export function useTerminal() {
           const fullText = prev.prefix + prev.suffixFn(chosen);
           inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
           cursorPosRef.current = inputBufferRef.current.length;
-          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
+          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index, term.cols) + '\x1b[u';
           term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
         }
@@ -424,7 +450,7 @@ export function useTerminal() {
           cursorPosRef.current = inputBufferRef.current.length;
 
           // Redraw match list with highlight
-          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index) + '\x1b[u';
+          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index, term.cols) + '\x1b[u';
           term.write(matchLine + erase + fullText);
           prev.lastWritten = fullText;
           return;
@@ -486,7 +512,7 @@ export function useTerminal() {
           // Show match list below prompt (no highlight on first display)
           const suffixFn = buildSuffix!;
           if (matchList.length > 1) {
-            term.write('\x1b[s\r\n' + matchList.join('  ') + '\x1b[u');
+            term.write('\x1b[s\r\n' + formatMatchList(matchList, -1, term.cols) + '\x1b[u');
           }
 
           tabCycle.current = {

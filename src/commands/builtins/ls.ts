@@ -35,10 +35,11 @@ export const lsCommand: CommandHandler = (ctx, parsed) => {
   // Column layout to prevent splitting filenames
   if (entries.length === 0) return { output: '' };
 
-  const cols = ctx.termCols || 80;
   const maxLen = Math.max(...entries.map(e => e.length));
   const colWidth = maxLen + 2; // 2 spaces between columns
-  const numCols = Math.max(1, Math.floor(cols / colWidth));
+  // Cap at 6 columns to keep output readable on wide screens
+  const maxCols = Math.min(6, Math.floor((ctx.termCols || 80) / colWidth));
+  const numCols = Math.max(1, maxCols);
   const numRows = Math.ceil(entries.length / numCols);
 
   let output = '';
@@ -47,10 +48,15 @@ export const lsCommand: CommandHandler = (ctx, parsed) => {
     for (let col = 0; col < numCols; col++) {
       const idx = col * numRows + row;
       if (idx < entries.length) {
-        line += entries[idx].padEnd(colWidth);
+        // Pad all columns except the last
+        if (col < numCols - 1 && (col + 1) * numRows + row < entries.length) {
+          line += entries[idx].padEnd(colWidth);
+        } else {
+          line += entries[idx];
+        }
       }
     }
-    output += line.trimEnd() + '\r\n';
+    output += line + '\r\n';
   }
 
   return { output };
