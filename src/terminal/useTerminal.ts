@@ -3,7 +3,6 @@ import type { Terminal as XTermType } from '@xterm/xterm';
 import type { DirNode } from '../types';
 import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
-import { imageToAscii } from '../utils/asciiImage';
 import { parseCommand } from '../commands/parser';
 import { createRegistry } from '../commands/registry';
 import { createHelpCommand } from '../commands/builtins/help';
@@ -70,18 +69,6 @@ export function useTerminal() {
   const historyIndexRef = useRef(-1);
   const prevCwdRef = useRef('/home/user');
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const avatarAsciiRef = useRef<string | null>(null);
-
-  // Pre-load avatar as ASCII text at startup
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        avatarAsciiRef.current = imageToAscii(img, 60);
-      } catch { /* ignore */ }
-    };
-    img.src = '/avatar.jpg';
-  }, []);
 
   // Tab-completion cycle state
   const tabCycle = useRef<{
@@ -158,7 +145,7 @@ export function useTerminal() {
     }));
 
     // Clear rich content for non-cat commands
-    if (!['cat'].includes(parsed.cmd)) {
+    if (!['cat', 'whoami'].includes(parsed.cmd)) {
       setRichContent(null);
     }
 
@@ -189,7 +176,6 @@ export function useTerminal() {
       setRichContent,
       theme: themeRef.current,
       setTheme,
-      getAsciiAvatar: () => avatarAsciiRef.current,
     };
 
     const result = registry.execute(ctx, parsed);
