@@ -39,10 +39,16 @@ function findCommonPrefix(strings: string[]): string {
 }
 
 function formatMatchList(matches: string[], selectedIndex: number, termCols: number): string {
+  // Single row — equal spacing
+  if (matches.length <= 6) {
+    return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
+  }
+
+  // Multi-row — column layout
   const maxLen = Math.max(...matches.map(m => m.length));
   const colWidth = maxLen + 2;
   const maxCols = Math.min(6, Math.floor(termCols / colWidth));
-  const numCols = Math.max(1, maxCols);
+  const numCols = Math.max(1, Math.min(maxCols, matches.length));
   const numRows = Math.ceil(matches.length / numCols);
 
   const rows: string[] = [];
@@ -54,12 +60,9 @@ function formatMatchList(matches: string[], selectedIndex: number, termCols: num
         const m = matches[idx];
         const display = idx === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m;
         const isLastCol = col === numCols - 1 || (col + 1) * numRows + row >= matches.length;
-        line += isLastCol ? display : display.padEnd(colWidth + (idx === selectedIndex ? 0 : 0));
-        // Adjust padding for ANSI codes — they take no visible width
+        line += display;
         if (!isLastCol) {
-          const visibleLen = m.length;
-          const padLen = colWidth - visibleLen;
-          if (padLen > 0) line += ' '.repeat(padLen);
+          line += ' '.repeat(colWidth - m.length);
         }
       }
     }
@@ -94,7 +97,33 @@ export function useTerminal() {
   const cursorPosRef = useRef(0);
   const historyIndexRef = useRef(-1);
   const prevCwdRef = useRef('/home/user');
+  const suggestionRef = useRef('');
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const showSuggestion = useCallback(() => {
+    const term = xtermRef.current;
+    if (!term) return;
+    const input = inputBufferRef.current;
+    if (input.length === 0) { suggestionRef.current = ''; return; }
+
+    // Clear previous suggestion if any
+    if (suggestionRef.current) {
+      term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
+    }
+
+    // Search history for a match
+    const history = historyRef.current;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i].startsWith(input) && history[i].length > input.length) {
+        const suffix = history[i].slice(input.length);
+        suggestionRef.current = suffix;
+        term.write('\x1b[2m' + suffix + '\x1b[0m');
+        term.write('\b'.repeat(suffix.length));
+        return;
+      }
+    }
+    suggestionRef.current = '';
+  }, []);
 
   // Tab-completion cycle state
   const tabCycle = useRef<{
@@ -262,14 +291,19 @@ export function useTerminal() {
       // Reset tab-cycle state on any non-Tab/non-ShiftTab key
       if (data !== '\t' && data !== '\x1b[Z') {
         if (tabCycle.current) {
-          // Clear the match list displayed below the prompt
-          term.write('\x1b[s\x1b[B\r\x1b[2K\x1b[u');
+          // Clear match list — may span multiple lines with column layout
+          term.write('\x1b[s\x1b[B\r\x1b[J\x1b[u');
         }
         tabCycle.current = null;
       }
 
       // Handle Enter
       if (data === '\r') {
+        // Clear suggestion
+        if (suggestionRef.current) {
+          term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
+          suggestionRef.current = '';
+        }
         const input = inputBufferRef.current;
         term.write('\r\n');
         executeCommand(input);
@@ -284,26 +318,36 @@ export function useTerminal() {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
         if (pos > 0) {
+          // Clear suggestion if present
+          if (suggestionRef.current) {
+            term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
+            suggestionRef.current = '';
+          }
+
           const after = buf.slice(pos);
           inputBufferRef.current = buf.slice(0, pos - 1) + after;
           cursorPosRef.current = pos - 1;
           term.write('\x1b[?25l\b' + after + ' ');
           for (let i = 0; i <= after.length; i++) term.write('\b');
           term.write('\x1b[?25h');
+          showSuggestion();
         }
         return;
       }
 
-      // Handle Ctrl+L (clear / form feed)
+      // Handle Ctrl+L (clear screen, only when no input)
       if (data === '\x0c') {
-        setRichContent(null);
-        term.write('\x1b[2J\x1b[H');
-        writePrompt();
+        if (inputBufferRef.current.length === 0) {
+          setRichContent(null);
+          term.write('\x1b[2J\x1b[H');
+          writePrompt();
+        }
         return;
       }
 
       // Handle Ctrl+C
       if (data === '\x03') {
+        suggestionRef.current = '';
         term.write('^C\r\n');
         inputBufferRef.current = '';
         cursorPosRef.current = 0;
@@ -383,11 +427,18 @@ export function useTerminal() {
         return;
       }
 
-      // Handle arrow right — echo char under cursor to advance
+      // Handle arrow right — accept suggestion at end, or move within text
       if (data === '\x1b[C') {
-        const len = inputBufferRef.current.length;
-        if (cursorPosRef.current < len) {
-          term.write(inputBufferRef.current[cursorPosRef.current]);
+        const buf = inputBufferRef.current;
+        if (cursorPosRef.current === buf.length && suggestionRef.current) {
+          // Accept suggestion
+          const sug = suggestionRef.current;
+          suggestionRef.current = '';
+          term.write('\x1b[0m' + sug);
+          inputBufferRef.current = buf + sug;
+          cursorPosRef.current = buf.length + sug.length;
+        } else if (cursorPosRef.current < buf.length) {
+          term.write(buf[cursorPosRef.current]);
           cursorPosRef.current++;
         }
         return;
@@ -544,11 +595,19 @@ export function useTerminal() {
       if (data.length === 1 && data.charCodeAt(0) >= 32) {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
+
+        // Clear suggestion if present
+        if (suggestionRef.current) {
+          term.write('\x1b[0m' + '\b \b'.repeat(suggestionRef.current.length));
+          suggestionRef.current = '';
+        }
+
         inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
         cursorPosRef.current = pos + 1;
         term.write('\x1b[?25l' + data + buf.slice(pos));
         for (let i = 0; i < buf.length - pos; i++) term.write('\b');
         term.write('\x1b[?25h');
+        showSuggestion();
       }
     });
 

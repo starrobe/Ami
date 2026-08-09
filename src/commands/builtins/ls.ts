@@ -35,11 +35,16 @@ export const lsCommand: CommandHandler = (ctx, parsed) => {
   // Column layout to prevent splitting filenames
   if (entries.length === 0) return { output: '' };
 
+  // Single row — equal spacing
+  if (entries.length <= 6) {
+    return { output: entries.join('  ') + '\r\n' };
+  }
+
   const maxLen = Math.max(...entries.map(e => e.length));
   const colWidth = maxLen + 2; // 2 spaces between columns
   // Cap at 6 columns to keep output readable on wide screens
   const maxCols = Math.min(6, Math.floor((ctx.termCols || 80) / colWidth));
-  const numCols = Math.max(1, maxCols);
+  const numCols = Math.max(1, Math.min(maxCols, entries.length));
   const numRows = Math.ceil(entries.length / numCols);
 
   let output = '';
