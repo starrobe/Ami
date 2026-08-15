@@ -12,6 +12,6 @@ export function createHelpCommand(registry: CommandRegistry): CommandHandler {
       output += `  ${name.padEnd(12)} ${desc}\r\n`;
     }
     output += '\r\n';
-    return { output };
+    return output;
   };
 }

@@ -32,35 +32,18 @@ export interface CommandContext {
   termCols: number;
 }
 
-export type CommandResult = {
-  output?: string;
-  richContent?: ReactNode;
-};
-
+// Commands return plain text written straight to the terminal, or nothing
+// (output is produced through ctx.appendOutput / ctx.setRichContent instead).
 export type CommandHandler = (
   ctx: CommandContext,
   parsed: ParsedCommand
-) => CommandResult | void;
+) => string | void;
 
+// Only the fields the app actually consumes (terminal theme + page chrome).
 export interface Theme {
   background: string;
   foreground: string;
   cursor: string;
   selection: string;
   black: string;
-  red: string;
-  green: string;
-  yellow: string;
-  blue: string;
-  magenta: string;
-  cyan: string;
-  white: string;
-  brightBlack: string;
-  brightRed: string;
-  brightGreen: string;
-  brightYellow: string;
-  brightBlue: string;
-  brightMagenta: string;
-  brightCyan: string;
-  brightWhite: string;
 }

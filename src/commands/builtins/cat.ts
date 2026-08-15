@@ -6,19 +6,19 @@ const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.
 
 export const catCommand: CommandHandler = (ctx, parsed) => {
   if (parsed.args.length === 0) {
-    return { output: 'cat: missing file operand\r\n' };
+    return 'cat: missing file operand\r\n';
   }
 
   const target = parsed.args[0];
-  const path = resolvePath(ctx.fs, ctx.cwd, target);
+  const path = resolvePath(ctx.cwd, target);
   const node = getNode(ctx.fs, path);
 
   if (!node) {
-    return { output: `cat: ${target}: No such file or directory\r\n` };
+    return `cat: ${target}: No such file or directory\r\n`;
   }
 
   if (node.type === 'dir') {
-    return { output: `cat: ${target}: Is a directory\r\n` };
+    return `cat: ${target}: Is a directory\r\n`;
   }
 
   // Images → rich content preview
@@ -31,7 +31,7 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
         style: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
       })
     );
-    return { output: '' };
+    return '';
   }
 
   // .md files → rich Markdown rendering (lazy loaded)
@@ -45,9 +45,9 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
         React.createElement(MarkdownView, { content: body })
       );
     });
-    return { output: '' };
+    return '';
   }
 
   // Plain files → terminal text
-  return { output: node.content };
+  return node.content;
 };

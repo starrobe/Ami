@@ -17,3 +17,7 @@ export const profile: ProfileInfo[] = [
   { key: 'Email', value: 'starrobe@163.com', href: 'mailto:starrobe@163.com' },
   { key: 'Blog', value: 'https://starrobe.cn', href: 'https://starrobe.cn' },
 ];
+
+export function getUserName(): string {
+  return profile.find(p => p.key === 'Name')?.value || 'user';
+}

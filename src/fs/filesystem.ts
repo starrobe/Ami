@@ -63,9 +63,7 @@ export function createInitialFS(): DirNode {
   };
 }
 
-export function resolvePath(_fs: DirNode, cwd: string, target: string): string {
-  // _fs kept for API consistency with getNode/listDir; resolution is purely
-  // path-string based and does not need to inspect the tree.
+export function resolvePath(cwd: string, target: string): string {
   if (!target || target === '') return cwd;
 
   if (target === '~') return '/home/user';
@@ -114,13 +112,6 @@ export function getNode(fs: DirNode, path: string): FSEntry | null {
   }
 
   return null;
-}
-
-export function getParentPath(path: string): string {
-  if (path === '/') return '/';
-  const segments = path.split('/').filter(Boolean);
-  segments.pop();
-  return '/' + segments.join('/') || '/';
 }
 
 export function listDir(fs: DirNode, path: string): string[] {

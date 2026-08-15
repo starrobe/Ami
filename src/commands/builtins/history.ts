@@ -10,6 +10,6 @@ export function createHistoryCommand(
       output += `  ${String(i + 1).padStart(4)}  ${entry}\r\n`;
     });
     output += '\r\n';
-    return { output };
+    return output;
   };
 }

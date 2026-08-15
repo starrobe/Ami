@@ -15,26 +15,26 @@ export function createCdCommand(
     if (target === '-') {
       const prev = getPrevCwd();
       if (prev === ctx.cwd) {
-        return { output: 'cd: no previous directory\r\n' };
+        return 'cd: no previous directory\r\n';
       }
       const prevDisplay = prev.replace('/home/user', '~');
       setPrevCwd(ctx.cwd);
       ctx.setCwd(prev);
-      return { output: prevDisplay + '\r\n' };
+      return prevDisplay + '\r\n';
     }
 
-    const path = resolvePath(ctx.fs, ctx.cwd, target);
+    const path = resolvePath(ctx.cwd, target);
 
     if (!getNode(ctx.fs, path)) {
-      return { output: `cd: ${target}: No such file or directory\r\n` };
+      return `cd: ${target}: No such file or directory\r\n`;
     }
 
     if (!isDirectory(ctx.fs, path)) {
-      return { output: `cd: ${target}: Not a directory\r\n` };
+      return `cd: ${target}: Not a directory\r\n`;
     }
 
     setPrevCwd(ctx.cwd);
     ctx.setCwd(path);
-    return { output: '' };
+    return '';
   };
 }

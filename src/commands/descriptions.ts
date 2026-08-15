@@ -8,10 +8,10 @@ export const commandFlags: Record<string, string[]> = {
   echo: ['-n'],
 };
 
-export const commandNames = Object.keys({
-  ls: 1, cd: 1, cat: 1, grep: 1, clear: 1,
-  help: 1, pwd: 1, whoami: 1, echo: 1, theme: 1, history: 1,
-});
+export const commandNames = [
+  'ls', 'cd', 'cat', 'grep', 'clear',
+  'help', 'pwd', 'whoami', 'echo', 'theme', 'history',
+];
 
 export const commandDescriptions: Record<string, string> = {
   ls: 'list directory contents',

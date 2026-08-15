@@ -3,7 +3,7 @@ import type { Terminal as XTermType } from '@xterm/xterm';
 import type { DirNode } from '../types';
 import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
-import { profile, appVersion } from '../config';
+import { getUserName, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
 import { commandNames, fileArgCommands, commandFlags } from '../commands/descriptions';
 import { useSyncedRef } from '../hooks/useSyncedRef';
@@ -21,6 +21,8 @@ import { grepCommand } from '../commands/builtins/grep';
 import { catCommand } from '../commands/builtins/cat';
 import { themeCommand } from '../commands/builtins/theme';
 import { getTheme } from '../themes/themes';
+
+const MAX_HISTORY = 100;
 
 export interface TerminalState {
   cwd: string;
@@ -43,15 +45,17 @@ function findCommonPrefix(strings: string[]): string {
 }
 
 function formatMatchList(matches: string[], selectedIndex: number, termCols: number): string {
-  if (matches.length <= 8) {
-    return matches.map((m, i) => i === selectedIndex ? '\x1b[7m' + m + '\x1b[0m' : m).join('  ');
-  }
-  const formatted = formatColumns(matches, termCols, 9, 8);
-  if (selectedIndex >= 0) {
-    const target = matches[selectedIndex];
-    return formatted.replace(target, '\x1b[7m' + target + '\x1b[0m');
-  }
-  return formatted;
+  return formatColumns(matches, termCols, 9, 8, selectedIndex);
+}
+
+// xterm doesn't expose the cell height publicly; read the internal render
+// service dimensions so touch scrolling can convert pixels → lines.
+// Falls back to 20px when the internal layout is unavailable.
+function getCellHeight(term: XTermType): number {
+  const internal = term as unknown as {
+    _core?: { _renderService?: { dimensions?: { css?: { cell?: { height?: number } } } } };
+  };
+  return internal._core?._renderService?.dimensions?.css?.cell?.height || 20;
 }
 
 export function useTerminal() {
@@ -102,7 +106,7 @@ export function useTerminal() {
       }
     }
     suggestionRef.current = '';
-  }, []);
+  }, [historyRef]);
 
   // Tab-completion cycle state
   const tabCycle = useRef<{
@@ -138,11 +142,10 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
-    const userName = (profile.find(p => p.key === 'Name')?.value) || 'user';
-    term.write('\r\n\x1b[37m' + userName + '@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
+    term.write('\r\n\x1b[37m' + getUserName() + '@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
     term.scrollToBottom();
     term.focus();
-  }, []);
+  }, [cwdRef]);
 
   const appendOutput = useCallback((text: string) => {
     xtermRef.current?.write(text);
@@ -155,12 +158,12 @@ export function useTerminal() {
   const setCwd = useCallback((path: string) => {
     cwdRef.current = path;
     setState(prev => ({ ...prev, cwd: path }));
-  }, []);
+  }, [cwdRef]);
 
   const setTheme = useCallback((name: string) => {
     themeRef.current = name;
     setState(prev => ({ ...prev, theme: name }));
-  }, []);
+  }, [themeRef]);
 
   // Cache the populated registry
   const registryRef = useRef<ReturnType<typeof createRegistry> | null>(null);
@@ -184,7 +187,7 @@ export function useTerminal() {
       registryRef.current = registry;
     }
     return registryRef.current;
-  }, []);
+  }, [historyRef]);
 
   const executeCommand = useCallback((input: string) => {
     const term = xtermRef.current;
@@ -196,8 +199,8 @@ export function useTerminal() {
       return;
     }
 
-    // Update history via ref then sync state
-    historyRef.current = [...historyRef.current, input];
+    // Update history via ref then sync state (bounded to avoid unbounded growth)
+    historyRef.current = [...historyRef.current, input].slice(-MAX_HISTORY);
     setState(prev => ({
       ...prev,
       history: historyRef.current,
@@ -229,7 +232,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt]);
+  }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
@@ -272,6 +275,55 @@ export function useTerminal() {
     }
 
     xtermRef.current = term;
+
+    // --- Input editing helpers (only touch refs; stable across renders) ---
+    const clearInput = () => {
+      while (inputBufferRef.current.length > 0) {
+        inputBufferRef.current = inputBufferRef.current.slice(0, -1);
+        term.write('\b \b');
+      }
+      cursorPosRef.current = 0;
+    };
+
+    const setInput = (text: string) => {
+      clearInput();
+      inputBufferRef.current = text;
+      term.write(text);
+      cursorPosRef.current = text.length;
+    };
+
+    // Delete buffer range [deleteFrom, pos) and redraw the tail at the cursor
+    const eraseRange = (deleteFrom: number, pos: number) => {
+      const tail = inputBufferRef.current.slice(pos);
+      inputBufferRef.current = inputBufferRef.current.slice(0, deleteFrom) + tail;
+      cursorPosRef.current = deleteFrom;
+      term.write('\x1b[?25l\b'.repeat(pos - deleteFrom) + tail + ' ');
+      for (let i = 0; i <= tail.length; i++) term.write('\b');
+      term.write('\x1b[?25h');
+    };
+
+    // Cycle the tab-completion selection by dir (-1 = Shift+Tab, +1 = Tab).
+    // Returns false when no completion cycle is in progress.
+    const cycleCompletion = (dir: 1 | -1): boolean => {
+      const prev = tabCycle.current;
+      if (!prev) return false;
+
+      const isFirstSelect = prev.index === -1;
+      prev.index = isFirstSelect
+        ? 0
+        : (prev.index + dir + prev.matches.length) % prev.matches.length;
+
+      const erase = '\b \b'.repeat(isFirstSelect ? prev.prefix.length : prev.lastWritten.length);
+      const chosen = prev.matches[prev.index];
+      const fullText = prev.prefix + prev.suffixFn(chosen);
+      inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
+      cursorPosRef.current = inputBufferRef.current.length;
+      const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index, term.cols) + '\x1b[u';
+      term.write(matchLine + erase + fullText);
+      prev.lastWritten = fullText;
+      return true;
+    };
+
     // Handle input
     term.onData((data) => {
       // Reset tab-cycle state on any non-Tab/non-ShiftTab key
@@ -297,15 +349,9 @@ export function useTerminal() {
 
       // Handle Backspace
       if (data === '\x7f') {
-        const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
         if (pos > 0) {
-          const after = buf.slice(pos);
-          inputBufferRef.current = buf.slice(0, pos - 1) + after;
-          cursorPosRef.current = pos - 1;
-          term.write('\x1b[?25l\b' + after + ' ');
-          for (let i = 0; i <= after.length; i++) term.write('\b');
-          term.write('\x1b[?25h');
+          eraseRange(pos - 1, pos);
           showSuggestion();
         }
         return;
@@ -333,10 +379,7 @@ export function useTerminal() {
 
       // Handle Ctrl+U (clear line)
       if (data === '\x15') {
-        const buf = inputBufferRef.current;
-        for (let i = 0; i < buf.length; i++) term.write('\b \b');
-        inputBufferRef.current = '';
-        cursorPosRef.current = 0;
+        clearInput();
         return;
       }
 
@@ -347,11 +390,7 @@ export function useTerminal() {
         const before = buf.slice(0, pos).replace(/\s+$/, '');
         const lastSpace = before.lastIndexOf(' ');
         const deleteFrom = lastSpace === -1 ? 0 : lastSpace + 1;
-        inputBufferRef.current = buf.slice(0, deleteFrom) + buf.slice(pos);
-        cursorPosRef.current = deleteFrom;
-        term.write('\x1b[?25l\b'.repeat(pos - deleteFrom) + buf.slice(pos) + ' ');
-        for (let i = 0; i <= buf.slice(pos).length; i++) term.write('\b');
-        term.write('\x1b[?25h');
+        eraseRange(deleteFrom, pos);
         return;
       }
 
@@ -365,14 +404,7 @@ export function useTerminal() {
         } else if (historyIndexRef.current > 0) {
           historyIndexRef.current--;
         }
-        // Clear current input
-        while (inputBufferRef.current.length > 0) {
-          inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-          term.write('\b \b');
-        }
-        inputBufferRef.current = history[historyIndexRef.current];
-        term.write(inputBufferRef.current);
-        cursorPosRef.current = inputBufferRef.current.length;
+        setInput(history[historyIndexRef.current]);
         return;
       }
 
@@ -380,19 +412,13 @@ export function useTerminal() {
       if (data === '\x1b[B') {
         suggestionRef.current = '';
         const history = historyRef.current;
-        while (inputBufferRef.current.length > 0) {
-          inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-          term.write('\b \b');
-        }
         if (historyIndexRef.current < history.length - 1) {
           historyIndexRef.current++;
-          inputBufferRef.current = history[historyIndexRef.current];
+          setInput(history[historyIndexRef.current]);
         } else {
           historyIndexRef.current = -1;
-          inputBufferRef.current = '';
+          setInput('');
         }
-        term.write(inputBufferRef.current);
-        cursorPosRef.current = inputBufferRef.current.length;
         return;
       }
 
@@ -424,29 +450,7 @@ export function useTerminal() {
 
       // Handle Shift+Tab (cycle backwards)
       if (data === '\x1b[Z') {
-        const prev = tabCycle.current;
-        if (prev) {
-          // First selection after display
-          const isFirstSelect = prev.index === -1;
-          if (isFirstSelect) {
-            prev.index = 0;
-          } else {
-            prev.index = (prev.index - 1 + prev.matches.length) % prev.matches.length;
-          }
-
-          const erase = isFirstSelect
-            ? '\b \b'.repeat(prev.prefix.length)
-            : '\b \b'.repeat(prev.lastWritten.length);
-          inputBufferRef.current = prev.baseBuffer;
-          cursorPosRef.current = prev.baseBuffer.length;
-          const chosen = prev.matches[prev.index];
-          const fullText = prev.prefix + prev.suffixFn(chosen);
-          inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
-          cursorPosRef.current = inputBufferRef.current.length;
-          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index, term.cols) + '\x1b[u';
-          term.write(matchLine + erase + fullText);
-          prev.lastWritten = fullText;
-        }
+        cycleCompletion(-1);
         return;
       }
 
@@ -460,29 +464,7 @@ export function useTerminal() {
 
         // Check if continuing a previous cycle
         if (prev && buffer.startsWith(prev.baseBuffer)) {
-          // First selection after display (index -1 → 0)
-          const isFirstSelect = prev.index === -1;
-          if (isFirstSelect) {
-            prev.index = 0;
-          } else {
-            prev.index = (prev.index + 1) % prev.matches.length;
-          }
-
-          const erase = isFirstSelect
-            ? '\b \b'.repeat(prev.prefix.length)
-            : '\b \b'.repeat(prev.lastWritten.length);
-          inputBufferRef.current = prev.baseBuffer;
-          cursorPosRef.current = prev.baseBuffer.length;
-
-          const chosen = prev.matches[prev.index];
-          const fullText = prev.prefix + prev.suffixFn(chosen);
-          inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
-          cursorPosRef.current = inputBufferRef.current.length;
-
-          // Redraw match list with highlight
-          const matchLine = '\x1b[s\x1b[B\r\x1b[2K' + formatMatchList(prev.matches, prev.index, term.cols) + '\x1b[u';
-          term.write(matchLine + erase + fullText);
-          prev.lastWritten = fullText;
+          cycleCompletion(1);
           return;
         } else {
           // --- Build new completion ---
@@ -512,7 +494,6 @@ export function useTerminal() {
               matchPrefix = partial;
               buildSuffix = (m: string) => m.slice(matchPrefix.length) + ' ';
               // fall through to normal completion flow below
-              // ...
             } else {
             // Commands that don't take file arguments — skip path completion
             const cmd = tokens[0]?.toLowerCase();
@@ -521,7 +502,7 @@ export function useTerminal() {
               const pathSegs = partial.split('/');
               matchPrefix = pathSegs[pathSegs.length - 1] || '';
               const dirPart = pathSegs.slice(0, -1).join('/');
-              const resolvedDir = resolvePath(fsRef.current, cwdRef.current, dirPart || '.');
+              const resolvedDir = resolvePath(cwdRef.current, dirPart || '.');
               const dirNode = getNode(fsRef.current, resolvedDir);
               if (dirNode && dirNode.type === 'dir') {
                 const children = Object.keys(dirNode.children);
@@ -596,7 +577,7 @@ export function useTerminal() {
 
     // Touch scroll with momentum (xterm.js lacks native touch scroll)
     let touchY = 0, velocity = 0, lastTime = 0, momentumRaf = 0;
-    const lineHeight = (term as any)._core?._renderService?.dimensions?.css?.cell?.height || 20;
+    const lineHeight = getCellHeight(term);
 
     const stopMomentum = () => {
       if (momentumRaf) { cancelAnimationFrame(momentumRaf); momentumRaf = 0; }
@@ -663,7 +644,7 @@ export function useTerminal() {
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [executeCommand, writePrompt, setRichContent]);
+  }, [executeCommand, writePrompt, setRichContent, historyRef, cwdRef, showSuggestion]);
 
   return {
     containerRef,

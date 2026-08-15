@@ -20,9 +20,7 @@ export function createRegistry(): CommandRegistry {
         return `bash: ${parsed.cmd}: command not found`;
       }
       try {
-        const result = handler(ctx, parsed);
-        if (result?.output) return result.output;
-        return null;
+        return handler(ctx, parsed) ?? null;
       } catch (err) {
         return `bash: ${parsed.cmd}: ${err instanceof Error ? err.message : 'error'}`;
       }

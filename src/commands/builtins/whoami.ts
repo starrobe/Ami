@@ -26,5 +26,5 @@ const WhoamiPanel = () => {
 
 export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
   ctx.setRichContent(React.createElement(WhoamiPanel));
-  return { output: '' };
+  return '';
 };
