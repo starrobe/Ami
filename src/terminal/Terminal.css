@@ -71,7 +71,7 @@ html, body, #root {
 }
 
 .whoami-info {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 16px;
   line-height: 1.8;
   flex: 1;
