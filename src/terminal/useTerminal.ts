@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { getUserName, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
-import { stringWidth } from '../utils/charWidth';
+import { stringWidth, charWidth } from '../utils/charWidth';
 import { commandNames, fileArgCommands, commandFlags } from '../commands/descriptions';
 import { useSyncedRef } from '../hooks/useSyncedRef';
 import { parseCommand } from '../commands/parser';
@@ -280,8 +280,9 @@ export function useTerminal() {
     // --- Input editing helpers (only touch refs; stable across renders) ---
     const clearInput = () => {
       while (inputBufferRef.current.length > 0) {
+        const last = inputBufferRef.current.slice(-1);
         inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-        term.write('\b \b');
+        term.write('\b \b'.repeat(charWidth(last)));
       }
       cursorPosRef.current = 0;
     };
@@ -317,7 +318,7 @@ export function useTerminal() {
         ? 0
         : (prev.index + dir + prev.matches.length) % prev.matches.length;
 
-      const erase = '\b \b'.repeat(isFirstSelect ? prev.prefix.length : prev.lastWritten.length);
+      const erase = '\b \b'.repeat(isFirstSelect ? stringWidth(prev.prefix) : stringWidth(prev.lastWritten));
       const chosen = prev.matches[prev.index];
       const fullText = prev.prefix + prev.suffixFn(chosen);
       inputBufferRef.current = prev.baseBuffer.slice(0, prev.prefixStart) + fullText;
@@ -429,8 +430,9 @@ export function useTerminal() {
       // Handle arrow left
       if (data === '\x1b[D') {
         if (cursorPosRef.current > 0) {
+          const prevChar = inputBufferRef.current[cursorPosRef.current - 1];
           cursorPosRef.current--;
-          term.write('\b');
+          term.write('\b'.repeat(charWidth(prevChar)));
         }
         return;
       }
@@ -556,7 +558,7 @@ export function useTerminal() {
           if (matchList.length === 1) {
             const chosen = matchList[0];
             const fullText = partial + suffixFn!(chosen);
-            const erase = partial.length > 0 ? '\b \b'.repeat(partial.length) : '';
+            const erase = partial.length > 0 ? '\b \b'.repeat(stringWidth(partial)) : '';
             inputBufferRef.current = buffer.slice(0, prefixStart) + fullText;
             cursorPosRef.current = inputBufferRef.current.length;
             term.write(erase + fullText);
