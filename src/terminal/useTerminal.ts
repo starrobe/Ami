@@ -259,7 +259,7 @@ export function useTerminal() {
         selectionBackground: 'rgba(255, 255, 255, 0.25)',
       },
       cursorBlink: true,
-      cursorStyle: 'block',
+      cursorStyle: 'bar',
       allowProposedApi: true,
       scrollback: 5000,
     });
