@@ -1,7 +1,7 @@
 ---
 title: nvim学习记录
 date: 2023-06-22
-tags: [nvim]
+tags: nvim
 ---
 
 ## 快捷键

@@ -1,7 +1,7 @@
 ---
 title: Git学习记录
 date: 2023-02-03
-tags: [Git]
+tags: Git
 ---
 
 > git官网书籍[《Pro Git》](https://git-scm.com/book/zh/v2)

@@ -1,7 +1,7 @@
 ---
 title: Effective C++
 date: 2023-05-18
-tags: [C++]
+tags: C++
 ---
 
 ## 习惯C++

@@ -1,7 +1,7 @@
 ---
 title: Effective Modern C++
 date: 2023-06-18
-tags: [C++]
+tags: C++
 ---
 
 ## CHAPTER 1 Deducing Types

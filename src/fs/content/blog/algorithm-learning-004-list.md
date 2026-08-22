@@ -1,7 +1,7 @@
 ---
 title: 链表
 date: 2025-11-28
-tags: [算法]
+tags: 算法
 ---
 
 ```cpp

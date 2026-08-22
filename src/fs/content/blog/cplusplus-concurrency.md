@@ -1,7 +1,7 @@
 ---
 title: C++并发
 date: 2023-07-24
-tags: [C++, 并发编程]
+tags: C++, 并发编程
 ---
 
 参考自《C++ Concurrency In Action》

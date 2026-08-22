@@ -1,7 +1,7 @@
 ---
 title: 无锁的线程安全栈
 date: 2023-08-13
-tags: [C++, 并发编程]
+tags: C++, 并发编程
 ---
 
 > 选自《C++ Concurrency In Action》7.2.4
