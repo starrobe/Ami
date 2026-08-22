@@ -110,7 +110,8 @@ html, body, #root {
   padding: 8px 24px 16px 24px;
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #555 transparent;
 }
 
 .markdown-loading {
@@ -121,7 +122,20 @@ html, body, #root {
 }
 
 .terminal-rich::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+}
+
+.terminal-rich::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-rich::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.terminal-rich::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
 
 .boot-screen {
