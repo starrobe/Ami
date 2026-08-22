@@ -102,7 +102,7 @@ export function useTerminal() {
         const suffix = history[i].slice(input.length);
         suggestionRef.current = suffix;
         term.write('\x1b[2m' + suffix + '\x1b[0m');
-        term.write('\b'.repeat(suffix.length));
+        term.write('\b'.repeat(stringWidth(suffix)));
         return;
       }
     }
