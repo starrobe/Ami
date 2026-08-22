@@ -23,6 +23,11 @@ function* walkEntries(dir: DirNode, dirPath: string): Generator<[FSEntry, string
 }
 
 export const grepCommand: CommandHandler = (ctx, parsed) => {
+  // Help
+  if (parsed.flags.includes('h')) {
+    return `Usage: grep [OPTION]... PATTERN [FILE|DIR]\r\nSearch for PATTERN in files.\r\n\r\n  -i   ignore case\r\n  -n   show line numbers\r\n  -r   search directories recursively\r\n  -t   search by frontmatter tag\r\n  -h   show this help\r\n`;
+  }
+
   // -t flag: search by tag in frontmatter
   if (parsed.flags.includes('t')) {
     if (parsed.args.length === 0) {
