@@ -124,6 +124,43 @@ html, body, #root {
   display: none;
 }
 
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 15px;
+  color: #E0E0E0;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+
+.boot-fading {
+  opacity: 0;
+}
+
+.boot-line {
+  white-space: pre;
+}
+
+.boot-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 18px;
+  background: #FFFFFF;
+  animation: boot-blink 0.8s step-end infinite;
+}
+
+@keyframes boot-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
 /* Mobile: stack vertically, pass touch to xterm.js */
 @media (max-width: 768px) {
   .terminal-content {
