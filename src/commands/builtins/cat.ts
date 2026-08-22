@@ -40,6 +40,11 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     const body = frontmatterMatch ? frontmatterMatch[2] : content;
 
+    // Show loading placeholder immediately
+    ctx.setRichContent(
+      React.createElement('div', { className: 'markdown-loading' }, 'Loading...')
+    );
+
     import('../../output/MarkdownView').then(({ default: MarkdownView }) => {
       ctx.setRichContent(
         React.createElement(MarkdownView, { content: body })

@@ -113,6 +113,13 @@ html, body, #root {
   scrollbar-width: none;
 }
 
+.markdown-loading {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 14px;
+  color: #888;
+  padding: 12px 0;
+}
+
 .terminal-rich::-webkit-scrollbar {
   display: none;
 }
