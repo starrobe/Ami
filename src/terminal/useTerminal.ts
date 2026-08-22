@@ -249,7 +249,7 @@ export function useTerminal() {
     }
 
     const term = new Terminal({
-      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace",
       fontSize: window.innerWidth < 768 ? 13 : 16,
       lineHeight: 1.5,
       theme: {
