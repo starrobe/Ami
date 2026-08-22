@@ -4,7 +4,7 @@ export const fileArgCommands = ['cat', 'cd', 'ls', 'grep'];
 // Known flags per command (for tab completion)
 export const commandFlags: Record<string, string[]> = {
   ls: ['-l', '-a'],
-  grep: ['-i', '-n', '-r', '-t'],
+  grep: ['-i', '-n', '-r', '-t', '-h'],
   echo: ['-n'],
 };
 
@@ -17,7 +17,7 @@ export const commandDescriptions: Record<string, string> = {
   ls: 'list directory contents',
   cd: 'change the working directory',
   cat: 'preview files (md, images, text)',
-  grep: 'search for patterns (-i -n -r -t)',
+  grep: 'search text (-i -n -r) or tags (-t), help (-h)',
   clear: 'clear the terminal screen',
   help: 'display this help message',
   pwd: 'print working directory',
