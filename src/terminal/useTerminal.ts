@@ -566,14 +566,14 @@ export function useTerminal() {
         return;
       }
 
-      // Normal character input
-      if (data.length === 1 && data.charCodeAt(0) >= 32) {
+      // Normal character input (supports IME multi-character commits)
+      if (data.length >= 1 && data.charCodeAt(0) >= 32) {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
         const tail = buf.slice(pos);
 
         inputBufferRef.current = buf.slice(0, pos) + data + tail;
-        cursorPosRef.current = pos + 1;
+        cursorPosRef.current = pos + data.length;
         term.write('\x1b[?25l' + data + tail);
         for (let i = 0; i < stringWidth(tail); i++) term.write('\b');
         term.write('\x1b[?25h');
