@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { getUserName, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
+import { stringWidth } from '../utils/charWidth';
 import { commandNames, fileArgCommands, commandFlags } from '../commands/descriptions';
 import { useSyncedRef } from '../hooks/useSyncedRef';
 import { parseCommand } from '../commands/parser';
@@ -295,10 +296,13 @@ export function useTerminal() {
     // Delete buffer range [deleteFrom, pos) and redraw the tail at the cursor
     const eraseRange = (deleteFrom: number, pos: number) => {
       const tail = inputBufferRef.current.slice(pos);
+      const deleted = inputBufferRef.current.slice(deleteFrom, pos);
       inputBufferRef.current = inputBufferRef.current.slice(0, deleteFrom) + tail;
       cursorPosRef.current = deleteFrom;
-      term.write('\x1b[?25l\b'.repeat(pos - deleteFrom) + tail + ' ');
-      for (let i = 0; i <= tail.length; i++) term.write('\b');
+      const delWidth = stringWidth(deleted);
+      const tailWidth = stringWidth(tail);
+      term.write('\x1b[?25l' + '\b'.repeat(delWidth) + tail + ' ');
+      for (let i = 0; i <= tailWidth; i++) term.write('\b');
       term.write('\x1b[?25h');
     };
 
@@ -566,11 +570,12 @@ export function useTerminal() {
       if (data.length === 1 && data.charCodeAt(0) >= 32) {
         const buf = inputBufferRef.current;
         const pos = cursorPosRef.current;
+        const tail = buf.slice(pos);
 
-        inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
+        inputBufferRef.current = buf.slice(0, pos) + data + tail;
         cursorPosRef.current = pos + 1;
-        term.write('\x1b[?25l' + data + buf.slice(pos));
-        for (let i = 0; i < buf.length - pos; i++) term.write('\b');
+        term.write('\x1b[?25l' + data + tail);
+        for (let i = 0; i < stringWidth(tail); i++) term.write('\b');
         term.write('\x1b[?25h');
         showSuggestion();
       }
