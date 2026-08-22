@@ -526,6 +526,7 @@ export function useTerminal() {
           if (matchList.length > 1 && common.length > matchPrefix.length && matchPrefix.length > 0) {
             const toInsert = common.slice(matchPrefix.length);
             inputBufferRef.current += toInsert;
+            cursorPosRef.current += toInsert.length;
             term.write(toInsert);
             return;
           }
