@@ -2,6 +2,8 @@
 
 A personal terminal-style website. Type commands, browse files, read blog posts — just like a real Linux terminal.
 
+![Ami Terminal screenshot](src/fs/content/demo.png)
+
 ## Quick Start
 
 ```bash
