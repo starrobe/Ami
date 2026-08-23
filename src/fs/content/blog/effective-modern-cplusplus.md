@@ -314,7 +314,7 @@ f2(someFunc);  // ParamType为void(&)(int, double)
 - 引用计数必须动态分配
 - 递增递减引用计数必须是原子性的
 
-![share_ptr](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/shared_ptr.png)
+![share_ptr](https://img.starrobe.cn/blog/shared_ptr.png)
 
 如果通过原始指针构造`shared_ptr`，需要直接传递new的结果
 

@@ -10,7 +10,7 @@ tags: 并发编程
 
 > CPU Cache是由多个Cache Line组成，Cache Line也是CPU从内存读取数据的基本单位
 
-![cpu](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/cpu.png)
+![cpu](https://img.starrobe.cn/blog/cpu.png)
 
 ## MESI协议
 
@@ -19,7 +19,7 @@ tags: 并发编程
 - Shared，共享
 - Invalidated，已失效
 
-![cpu memory1](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/memory1.png)
+![cpu memory1](https://img.starrobe.cn/blog/memory1.png)
 
 > CPU要从主存读写数据，需要向总线发起事务(读事务或写事务)来从主存读取或者写入数据
 
@@ -55,7 +55,7 @@ CPU Cache再从Store Buffer读取数据
 
 因此加入失效队列，当CPU收到失效指令时，将其放入失效队列中，并直接返回ACK，等到空闲时再处理队列中的消息
 
-![cpu memory2](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/memory2.png)
+![cpu memory2](https://img.starrobe.cn/blog/memory2.png)
 
 > CPU的指令乱序执行是由Store Buffer以及失效队列造成的
 >

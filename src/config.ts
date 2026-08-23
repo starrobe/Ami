@@ -6,7 +6,7 @@ interface ProfileInfo {
   href?: string;
 }
 
-export const avatarUrl = '/avatar.png';
+export const avatarUrl = 'https://img.starrobe.cn/avatar/jashinchan.png';
 export const appVersion = pkg.version;
 
 export const profile: ProfileInfo[] = [

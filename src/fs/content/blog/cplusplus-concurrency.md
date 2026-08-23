@@ -593,28 +593,28 @@ int main()
 对于`lock()`与`unlock()`，可以看作两个单方向的屏障，`lock()`只允许向下方移动，
 `unlock()`只允许向上方移动
 
-![move-out](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/move_out.png)
+![move-out](https://img.starrobe.cn/blog/move_out.png)
 
-![move-in](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/move_in.png)
+![move-in](https://img.starrobe.cn/blog/move_in.png)
 
 | full fence | acquire fence | release fence  |
 | :--------- | :------------ | :------------- |
 | `std::atomic_thread_fence()` | `std::atomic_thread_fence(std::memory_order_acquire)` | `std::atomic_thread_fence(std::memory_order_release)` |
 | 避免重排(Store-Load除外)  | 避免栅栏前的读操作，被栅栏后的操作重排 | 避免栅栏前的写擦欧总，被栅栏前的操作重排 |
 
-![fences](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/fences.png)
+![fences](https://img.starrobe.cn/blog/fences.png)
 
 #### full fence
 
-![full-fence](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/full_fence.png)
+![full-fence](https://img.starrobe.cn/blog/full_fence.png)
 
 #### acquire fence
 
-![acquire-fence](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/acquire_fence.png)
+![acquire-fence](https://img.starrobe.cn/blog/acquire_fence.png)
 
 #### release fence
 
-![release-fence](https://starrobe-blog.oss-cn-beijing.aliyuncs.com/images/release_fence.png)
+![release-fence](https://img.starrobe.cn/blog/release_fence.png)
 
 ---
 
