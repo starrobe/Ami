@@ -658,5 +658,6 @@ export function useTerminal() {
     containerRef,
     initTerminal,
     state,
+    setRichContent,
   };
 }
