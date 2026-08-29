@@ -1,29 +1,39 @@
 .markdown-view {
+  --fg: #bbb;
+  --fg-deep: #ddd;
+  --fg-deeper: #fff;
+  --fg-light: #888;
   padding: 8px 0 16px 0;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
-  line-height: 1.7;
-  color: #E0E0E0;
+  line-height: 1.75;
+  color: var(--fg);
   max-width: 100%;
 }
 
 .markdown-view .md-h1 {
-  color: #E0E0E0;
-  font-size: 1.4em;
-  margin: 0 0 16px 0;
+  color: var(--fg-deeper);
+  font-weight: 800;
+  font-size: 2.25em;
+  margin: 0 0 0.8888889em 0;
   border-bottom: 1px solid #444;
   padding-bottom: 8px;
+  line-height: 1.1111111;
 }
 
 .markdown-view .md-h2 {
-  color: #E0E0E0;
-  font-size: 1.15em;
-  margin: 20px 0 10px 0;
+  color: var(--fg-deep);
+  font-weight: 700;
+  font-size: 1.5em;
+  margin: 2em 0 1em 0;
+  line-height: 1.3333333;
 }
 
 .markdown-view .md-h3 {
-  color: #B0B0B0;
-  font-size: 1.05em;
-  margin: 16px 0 8px 0;
+  color: var(--fg-deep);
+  font-weight: 600;
+  font-size: 1.25em;
+  margin: 1.5em 0 0.5em 0;
+  line-height: 1.5;
 }
 
 .markdown-view .md-p {
@@ -41,10 +51,10 @@
 
 .markdown-view .md-code-inline {
   background: #1a1a1a;
-  color: #B0B0B0;
+  color: var(--fg-deep);
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 0.9em;
+  font-size: 0.92em;
 }
 
 .markdown-view .md-code-block {
@@ -57,21 +67,21 @@
 }
 
 .markdown-view .md-code-block code {
-  color: #E0E0E0;
+  color: var(--fg-deep);
 }
 
 .markdown-view .md-link {
-  color: #C0C0C0;
+  color: var(--fg);
   text-decoration: underline;
 }
 
 .markdown-view .md-strong {
-  color: #FFFFFF;
+  color: var(--fg-deeper);
   font-weight: 700;
 }
 
 .markdown-view .md-em {
-  color: #A0A0A0;
+  color: var(--fg-light);
   font-style: italic;
 }
 
@@ -79,7 +89,7 @@
   border-left: 3px solid #555;
   padding-left: 16px;
   margin: 8px 0 16px 0;
-  color: #999;
+  color: var(--fg-light);
 }
 
 .markdown-view .md-img {
@@ -105,13 +115,13 @@
   padding: 8px 12px;
   text-align: left;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--fg-deeper);
 }
 
 .markdown-view .md-td {
   border: 1px solid #444;
   padding: 6px 12px;
-  color: #E0E0E0;
+  color: var(--fg);
 }
 
 .markdown-view .md-tr:hover {
