@@ -33,7 +33,7 @@ export default function Terminal() {
         <ErrorBoundary>
           <div className="terminal-rich-backdrop" onClick={() => setRichContent(null)}>
             <div className="terminal-rich" onClick={(e) => e.stopPropagation()}>
-              <div className="terminal-rich-body">{state.richContent}</div>
+              <div className="terminal-rich-body">{state.richContent.node}</div>
             </div>
           </div>
         </ErrorBoundary>

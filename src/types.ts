@@ -15,6 +15,16 @@ export interface DirNode {
 
 export type FSEntry = FileNode | DirNode;
 
+export interface RichContentMeta {
+  title: string;
+  type: string;
+}
+
+export interface RichContent {
+  node: ReactNode;
+  meta: RichContentMeta;
+}
+
 export interface ParsedCommand {
   cmd: string;
   args: string[];
@@ -26,7 +36,7 @@ export interface CommandContext {
   fs: DirNode;
   setCwd: (path: string) => void;
   appendOutput: (text: string) => void;
-  setRichContent: (node: ReactNode | null) => void;
+  setRichContent: (node: ReactNode | null, meta?: RichContentMeta) => void;
   theme: string;
   setTheme: (name: string) => void;
   termCols: number;

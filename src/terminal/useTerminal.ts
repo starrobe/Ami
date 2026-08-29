@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import type { Terminal as XTermType } from '@xterm/xterm';
-import type { DirNode } from '../types';
+import type { DirNode, RichContent, RichContentMeta } from '../types';
 import type { ReactNode } from 'react';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { getUserName, appVersion } from '../config';
@@ -29,7 +29,7 @@ export interface TerminalState {
   cwd: string;
   theme: string;
   history: string[];
-  richContent: ReactNode | null;
+  richContent: RichContent | null;
 }
 
 function findCommonPrefix(strings: string[]): string {
@@ -152,8 +152,11 @@ export function useTerminal() {
     xtermRef.current?.write(text);
   }, []);
 
-  const setRichContent = useCallback((node: ReactNode | null) => {
-    setState(prev => ({ ...prev, richContent: node }));
+  const setRichContent = useCallback((node: ReactNode | null, meta?: RichContentMeta) => {
+    setState(prev => ({
+      ...prev,
+      richContent: node === null ? null : { node, meta: meta ?? { title: '', type: '' } },
+    }));
   }, []);
 
   const setCwd = useCallback((path: string) => {
