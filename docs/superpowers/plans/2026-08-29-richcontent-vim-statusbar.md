@@ -443,7 +443,7 @@ Run: `npm run dev`，浏览器打开本地地址，逐条验证：
 1. `cat blog/lock-free-stack.md` → 面板底部显示 `blog/lock-free-stack.md [markdown]`，右侧初始 `Top`；向下滚动显示 `NN%`，到底显示 `Bot`。
 2. `cat demo.png` → 底部显示 `demo.png [png]`，右侧无百分比。
 3. `whoami` → 底部显示 `whoami [profile]`，右侧无百分比。
-4. 点击遮罩或 `clear` / `Ctrl+C` → 面板与状态栏一起消失。
+4. 点击遮罩或 `clear` → 面板与状态栏一起消失。
 5. 打开一个 md 后切换打开另一个 md → 滚动回到顶部，百分比重置为 `Top`。
 
 - [ ] **Step 7: 提交**

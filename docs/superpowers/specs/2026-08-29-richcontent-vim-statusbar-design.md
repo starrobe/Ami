@@ -79,7 +79,7 @@ export interface RichContent {
 ### 滚动追踪
 
 - `.terminal-rich-body` 上挂 `onScroll`，用 `scrollTop / (scrollHeight - clientHeight)` 计算百分比；当内容不可滚动（`scrollHeight <= clientHeight`）时显示 `Top`。
-- 用 React state 存百分比；richContent 变化时（切换文件）把滚动位置重置到顶部并归零——通过给 `.terminal-rich-body` 加 `key={meta.title}` 实现 remount，天然重置滚动与百分比。
+- 用 React state 存百分比；richContent 变化时（切换文件）用一个 `useEffect` 把 `richBodyRef.current.scrollTop` 重置为 0 并把百分比归零为 `Top`。
 - 百分比仅在 `meta.type === 'markdown'` 时渲染。
 
 ### 错误处理
@@ -96,4 +96,4 @@ export interface RichContent {
 ## 测试
 
 - 现有 `src/__tests__/` 若涉及 `setRichContent` 调用，需同步更新签名。
-- 手动验证：`cat about.md`（显示 `about.md [markdown]` + 滚动百分比）、`cat 图片`（显示文件名 + `[ext]`，无百分比）、`whoami`（显示 `whoami [profile]`）、`Ctrl+C`/`clear`/切文件后状态栏正确消失/重置。
+- 手动验证：`cat about.md`（显示 `about.md [markdown]` + 滚动百分比）、`cat 图片`（显示文件名 + `[ext]`，无百分比）、`whoami`（显示 `whoami [profile]`）、`clear`/切文件后状态栏正确消失/重置。
