@@ -4,7 +4,7 @@
   --fg-deeper: #fff;
   --fg-light: #888;
   padding: 8px 0 16px 0;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.75;
   color: var(--fg);
   max-width: 100%;
@@ -55,6 +55,7 @@
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 0.92em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
 }
 
 .markdown-view .md-code-block {
@@ -64,6 +65,7 @@
   padding: 12px 16px;
   overflow-x: auto;
   margin: 8px 0 16px 0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
 }
 
 .markdown-view .md-code-block code {
