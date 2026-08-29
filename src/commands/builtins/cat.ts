@@ -29,7 +29,8 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
         src: node.content,
         alt: target,
         style: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
-      })
+      }),
+      { title: target, type: ext.slice(1) }
     );
     return '';
   }
@@ -42,12 +43,14 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
 
     // Show loading placeholder immediately
     ctx.setRichContent(
-      React.createElement('div', { className: 'markdown-loading' }, 'Loading...')
+      React.createElement('div', { className: 'markdown-loading' }, 'Loading...'),
+      { title: target, type: 'markdown' }
     );
 
     import('../../output/MarkdownView').then(({ default: MarkdownView }) => {
       ctx.setRichContent(
-        React.createElement(MarkdownView, { content: body })
+        React.createElement(MarkdownView, { content: body }),
+        { title: target, type: 'markdown' }
       );
     });
     return '';

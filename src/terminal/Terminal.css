@@ -122,7 +122,6 @@ html, body, #root {
   border: 1px solid #30363D;
   border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  padding: 16px 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -133,6 +132,7 @@ html, body, #root {
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
+  padding: 16px 24px;
 }
 
 .markdown-loading {
@@ -144,6 +144,35 @@ html, body, #root {
 
 .terminal-rich-body::-webkit-scrollbar {
   display: none;
+}
+
+.terminal-rich-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 24px;
+  border-top: 1px solid #30363D;
+  color: #888;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+  font-size: 13px;
+}
+
+.terminal-rich-status-left {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminal-rich-status-type {
+  margin-left: 8px;
+  color: #666;
+}
+
+.terminal-rich-status-scroll {
+  flex-shrink: 0;
 }
 
 .boot-screen {
