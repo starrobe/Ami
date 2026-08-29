@@ -377,6 +377,7 @@ export function useTerminal() {
 
       // Handle Ctrl+C
       if (data === '\x03') {
+        setRichContent(null);
         suggestionRef.current = '';
         term.write('^C\r\n');
         inputBufferRef.current = '';

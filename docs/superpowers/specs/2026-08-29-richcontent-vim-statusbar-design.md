@@ -96,4 +96,4 @@ export interface RichContent {
 ## 测试
 
 - 现有 `src/__tests__/` 若涉及 `setRichContent` 调用，需同步更新签名。
-- 手动验证：`cat about.md`（显示 `about.md [markdown]` + 滚动百分比）、`cat 图片`（显示文件名 + `[ext]`，无百分比）、`whoami`（显示 `whoami [profile]`）、`clear`/切文件后状态栏正确消失/重置。
+- 手动验证：`cat about.md`（显示 `about.md [markdown]` + 滚动百分比）、`cat 图片`（显示文件名 + `[ext]`，无百分比）、`whoami`（显示 `whoami [profile]`）、`Ctrl+C`/`clear`/切文件后状态栏正确消失/重置。
