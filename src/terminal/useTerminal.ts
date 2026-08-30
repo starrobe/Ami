@@ -22,6 +22,9 @@ import { grepCommand } from '../commands/builtins/grep';
 import { catCommand } from '../commands/builtins/cat';
 import { themeCommand } from '../commands/builtins/theme';
 import { getTheme } from '../themes/themes';
+import { createProcessManager } from '../process/manager';
+import type { ProcessManager } from '../process/manager';
+import { PanelProcess } from '../process/panelProcess';
 
 const MAX_HISTORY = 100;
 
@@ -81,6 +84,7 @@ export function useTerminal() {
   const prevCwdRef = useRef('/home/user');
   const suggestionRef = useRef('');
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const processManagerRef = useRef<ProcessManager>(createProcessManager());
 
   const showSuggestion = useCallback(() => {
     const term = xtermRef.current;
@@ -169,6 +173,12 @@ export function useTerminal() {
     setState(prev => ({ ...prev, theme: name }));
   }, [themeRef]);
 
+  const spawnPanel = useCallback((name: string, rich: RichContent): PanelProcess => {
+    return processManagerRef.current.spawn(
+      (pid, notify) => new PanelProcess(pid, name, rich, notify)
+    ) as PanelProcess;
+  }, []);
+
   // Cache the populated registry
   const registryRef = useRef<ReturnType<typeof createRegistry> | null>(null);
   const getRegistry = useCallback(() => {
@@ -224,6 +234,8 @@ export function useTerminal() {
       setCwd,
       appendOutput,
       setRichContent,
+      manager: processManagerRef.current,
+      spawnPanel,
       theme: themeRef.current,
       setTheme,
       termCols: term.cols,
@@ -236,7 +248,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [appendOutput, setCwd, setTheme, setRichContent, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
+  }, [appendOutput, setCwd, setTheme, setRichContent, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;

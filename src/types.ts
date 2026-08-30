@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import type { ProcessManager } from './process/manager';
+import type { PanelProcess } from './process/panelProcess';
 
 export type FileType = 'file' | 'dir';
 
@@ -37,6 +39,8 @@ export interface CommandContext {
   setCwd: (path: string) => void;
   appendOutput: (text: string) => void;
   setRichContent: (node: ReactNode | null, meta?: RichContentMeta) => void;
+  manager: ProcessManager;
+  spawnPanel: (name: string, rich: RichContent) => PanelProcess;
   theme: string;
   setTheme: (name: string) => void;
   termCols: number;
