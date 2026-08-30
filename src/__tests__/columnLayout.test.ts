@@ -35,4 +35,13 @@ describe('formatColumns', () => {
     const result = formatColumns(['a', 'bb'], 200, 8, 8, -1);
     expect(result).toBe('a  bb');
   });
+
+  it('pads cells by display width so CJK entries align', () => {
+    // '文' is display-width 2 but string-length 1, so the widest entry
+    // makes the column width 4 (2 + 2), not 3 (1 + 2).
+    const entries = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', '文'];
+    const result = formatColumns(entries, 80, 8, 8);
+    // The non-last 'i' cell is padded to display width 4: 'i' + 3 spaces.
+    expect(result).toContain('i   文');
+  });
 });

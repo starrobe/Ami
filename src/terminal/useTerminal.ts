@@ -65,6 +65,10 @@ function getCellHeight(term: XTermType): number {
   return internal._core?._renderService?.dimensions?.css?.cell?.height || 20;
 }
 
+function promptString(displayPath: string): string {
+  return '\x1b[37m' + getUserName() + '@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ';
+}
+
 export function useTerminal() {
   const xtermRef = useRef<XTermType | null>(null);
   const initGenRef = useRef(0);
@@ -149,7 +153,7 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     const displayPath = cwdRef.current.replace('/home/user', '~');
-    term.write('\r\n\x1b[37m' + getUserName() + '@ami\x1b[0m:\x1b[37m' + displayPath + '\x1b[0m $ ');
+    term.write('\r\n' + promptString(displayPath));
     term.scrollToBottom();
     term.focus();
   }, [cwdRef]);
@@ -393,12 +397,13 @@ export function useTerminal() {
         return;
       }
 
-      // Handle Ctrl+L (clear screen, only when no input)
+      // Handle Ctrl+L (clear screen and redraw prompt + current input)
       if (data === '\x0c') {
-        if (inputBufferRef.current.length === 0) {
-          term.write('\x1b[2J\x1b[H');
-          writePrompt();
-        }
+        const displayPath = cwdRef.current.replace('/home/user', '~');
+        term.write('\x1b[2J\x1b[H' + promptString(displayPath));
+        term.write(inputBufferRef.current);
+        const back = stringWidth(inputBufferRef.current.slice(cursorPosRef.current));
+        if (back > 0) term.write('\b'.repeat(back));
         return;
       }
 

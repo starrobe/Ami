@@ -12,7 +12,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.error) {
-      return null;
+      return (
+        <div style={{ padding: '16px', color: '#E0E0E0', fontFamily: 'monospace', fontSize: '14px' }}>
+          render error: {this.state.error.message}
+        </div>
+      );
     }
     return this.props.children;
   }
