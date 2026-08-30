@@ -6,11 +6,13 @@ export const commandFlags: Record<string, string[]> = {
   ls: ['-l', '-a'],
   grep: ['-i', '-n', '-r', '-t', '-h'],
   echo: ['-n'],
+  kill: ['-9'],
 };
 
 export const commandNames = [
   'ls', 'cd', 'cat', 'grep', 'clear',
   'help', 'pwd', 'whoami', 'echo', 'theme', 'history',
+  'jobs', 'fg', 'bg', 'kill', 'ps',
 ];
 
 export const commandDescriptions: Record<string, string> = {
@@ -25,4 +27,9 @@ export const commandDescriptions: Record<string, string> = {
   echo: 'display a line of text',
   theme: 'change terminal color theme',
   history: 'display command history',
+  jobs: 'list background jobs',
+  fg: 'bring a job to the foreground',
+  bg: 'resume a job in the background',
+  kill: 'terminate a job/process (-9 to force)',
+  ps: 'list all processes',
 };

@@ -21,6 +21,11 @@ import { createCdCommand } from '../commands/builtins/cd';
 import { grepCommand } from '../commands/builtins/grep';
 import { catCommand } from '../commands/builtins/cat';
 import { themeCommand } from '../commands/builtins/theme';
+import { jobsCommand } from '../commands/builtins/jobs';
+import { fgCommand } from '../commands/builtins/fg';
+import { bgCommand } from '../commands/builtins/bg';
+import { killCommand } from '../commands/builtins/kill';
+import { psCommand } from '../commands/builtins/ps';
 import { getTheme } from '../themes/themes';
 import { createProcessManager } from '../process/manager';
 import type { ProcessManager } from '../process/manager';
@@ -198,6 +203,11 @@ export function useTerminal() {
       registry.register('grep', grepCommand);
       registry.register('cat', catCommand);
       registry.register('theme', themeCommand);
+      registry.register('jobs', jobsCommand);
+      registry.register('fg', fgCommand);
+      registry.register('bg', bgCommand);
+      registry.register('kill', killCommand);
+      registry.register('ps', psCommand);
       registryRef.current = registry;
     }
     return registryRef.current;
