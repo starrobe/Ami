@@ -29,6 +29,11 @@ npm test           # run tests
 | `history` | Command history |
 | `clear` / `Ctrl+L` | Clear screen |
 | `theme` | Switch color theme |
+| `jobs` | List background jobs |
+| `fg [%n]` | Bring a job to the foreground |
+| `bg [%n]` | Resume a job in the background |
+| `kill [-9] <pid\|%n>` | Terminate a job/process |
+| `ps` | List all processes |
 
 ## Features
 
@@ -39,6 +44,7 @@ npm test           # run tests
 - **Rich Markdown** with GFM tables & LaTeX math ($E=mc^2$)
 - **Image preview** for JPG/PNG/GIF
 - **Virtual filesystem** — drop `.md` files in `src/fs/content/`, auto-discovered
+- **Process/job control** — panels run as jobs: `Ctrl+Z` suspends, `jobs`/`fg`/`bg`/`kill` manage background jobs
 - **Configurable profile** in `src/config.ts`
 
 ## Project Structure
@@ -47,6 +53,7 @@ npm test           # run tests
 src/
 ├── terminal/       # xterm.js wrapper
 ├── commands/       # command implementations
+├── process/        # process manager, signals, PanelProcess
 ├── fs/             # virtual filesystem
 ├── output/         # MarkdownView, CSS
 ├── themes/         # color schemes

@@ -28,8 +28,8 @@ export const commandDescriptions: Record<string, string> = {
   theme: 'change terminal color theme',
   history: 'display command history',
   jobs: 'list background jobs',
-  fg: 'bring a job to the foreground',
-  bg: 'resume a job in the background',
-  kill: 'terminate a job/process (-9 to force)',
+  fg: 'bring a job to the foreground (%n)',
+  bg: 'resume a job in the background (%n)',
+  kill: 'terminate a process or job ([-9] pid|%n)',
   ps: 'list all processes',
 };
