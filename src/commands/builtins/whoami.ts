@@ -25,6 +25,9 @@ const WhoamiPanel = () => {
 };
 
 export const whoamiCommand: CommandHandler = (ctx, _parsed) => {
-  ctx.setRichContent(React.createElement(WhoamiPanel), { title: 'whoami', type: 'profile' });
+  ctx.spawnPanel('whoami', {
+    node: React.createElement(WhoamiPanel),
+    meta: { title: 'whoami', type: 'profile' },
+  });
   return '';
 };

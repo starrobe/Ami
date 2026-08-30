@@ -1,7 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import type { Terminal as XTermType } from '@xterm/xterm';
-import type { DirNode, RichContent, RichContentMeta } from '../types';
-import type { ReactNode } from 'react';
+import type { DirNode, RichContent } from '../types';
 import { createInitialFS, resolvePath, getNode } from '../fs/filesystem';
 import { getUserName, appVersion } from '../config';
 import { formatColumns } from '../utils/columnLayout';
@@ -37,7 +36,6 @@ export interface TerminalState {
   cwd: string;
   theme: string;
   history: string[];
-  richContent: RichContent | null;
 }
 
 function findCommonPrefix(strings: string[]): string {
@@ -74,7 +72,6 @@ export function useTerminal() {
     cwd: '/home/user',
     theme: 'default',
     history: [],
-    richContent: null,
   });
 
   // Refs synced with state to avoid stale closure in onData handler
@@ -161,13 +158,6 @@ export function useTerminal() {
     xtermRef.current?.write(text);
   }, []);
 
-  const setRichContent = useCallback((node: ReactNode | null, meta?: RichContentMeta) => {
-    setState(prev => ({
-      ...prev,
-      richContent: node === null ? null : { node, meta: meta ?? { title: '', type: '' } },
-    }));
-  }, []);
-
   const setCwd = useCallback((path: string) => {
     cwdRef.current = path;
     setState(prev => ({ ...prev, cwd: path }));
@@ -182,6 +172,23 @@ export function useTerminal() {
     return processManagerRef.current.spawn(
       (pid, notify) => new PanelProcess(pid, name, rich, notify)
     ) as PanelProcess;
+  }, []);
+
+  const suspendForeground = useCallback(() => {
+    const pm = processManagerRef.current;
+    const fg = pm.getForeground();
+    if (fg) pm.signal(fg.pid, 'SIGSTOP');
+  }, []);
+
+  const terminateForeground = useCallback(() => {
+    const pm = processManagerRef.current;
+    const fg = pm.getForeground();
+    if (fg) pm.signal(fg.pid, 'SIGTERM');
+  }, []);
+
+  const [, forceRender] = useState(0);
+  useEffect(() => {
+    return processManagerRef.current.subscribe(() => forceRender((n) => n + 1));
   }, []);
 
   // Cache the populated registry
@@ -230,9 +237,9 @@ export function useTerminal() {
       history: historyRef.current,
     }));
 
-    // Clear rich content for non-cat commands
-    if (!['cat', 'whoami'].includes(parsed.cmd)) {
-      setRichContent(null);
+    // Suspend the foreground process for commands that don't manage it themselves
+    if (!['cat', 'whoami', 'clear'].includes(parsed.cmd)) {
+      suspendForeground();
     }
 
     const registry = getRegistry();
@@ -243,7 +250,6 @@ export function useTerminal() {
       fs: fsRef.current,
       setCwd,
       appendOutput,
-      setRichContent,
       manager: processManagerRef.current,
       spawnPanel,
       theme: themeRef.current,
@@ -258,7 +264,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [appendOutput, setCwd, setTheme, setRichContent, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
+  }, [appendOutput, setCwd, setTheme, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef, suspendForeground]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
@@ -390,16 +396,31 @@ export function useTerminal() {
       // Handle Ctrl+L (clear screen, only when no input)
       if (data === '\x0c') {
         if (inputBufferRef.current.length === 0) {
-          setRichContent(null);
           term.write('\x1b[2J\x1b[H');
           writePrompt();
         }
         return;
       }
 
+      // Handle Ctrl+Z (suspend foreground process to background)
+      if (data === '\x1a') {
+        const fg = processManagerRef.current.getForeground();
+        if (fg) {
+          suspendForeground();
+          term.write(`^Z\r\n[1]+  Stopped   ${fg.name}\r\n`);
+        } else {
+          term.write('^Z\r\n');
+        }
+        suggestionRef.current = '';
+        inputBufferRef.current = '';
+        cursorPosRef.current = 0;
+        writePrompt();
+        return;
+      }
+
       // Handle Ctrl+C
       if (data === '\x03') {
-        setRichContent(null);
+        terminateForeground();
         suggestionRef.current = '';
         term.write('^C\r\n');
         inputBufferRef.current = '';
@@ -678,12 +699,13 @@ export function useTerminal() {
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [executeCommand, writePrompt, setRichContent, historyRef, cwdRef, showSuggestion]);
+  }, [executeCommand, writePrompt, historyRef, cwdRef, showSuggestion, suspendForeground, terminateForeground]);
 
   return {
     containerRef,
     initTerminal,
     state,
-    setRichContent,
+    manager: processManagerRef.current,
+    suspendForeground,
   };
 }

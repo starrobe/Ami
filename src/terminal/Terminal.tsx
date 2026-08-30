@@ -5,9 +5,11 @@ import { formatScrollPosition } from '../utils/scrollPosition';
 import './Terminal.css';
 
 export default function Terminal() {
-  const { containerRef, initTerminal, state, setRichContent } = useTerminal();
+  const { containerRef, initTerminal, manager, suspendForeground } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
   const [scrollLabel, setScrollLabel] = useState('Top');
+
+  const richContent = manager.getForeground()?.view() ?? null;
 
   useEffect(() => {
     let disposed = false;
@@ -31,16 +33,16 @@ export default function Terminal() {
   useEffect(() => {
     if (richBodyRef.current) richBodyRef.current.scrollTop = 0;
     setScrollLabel('Top');
-  }, [state.richContent]);
+  }, [richContent]);
 
   return (
     <div className="terminal-shell">
       <div className="terminal-content">
         <div ref={containerRef} className="terminal-xterm" />
       </div>
-      {state.richContent && (
+      {richContent && (
         <ErrorBoundary>
-          <div className="terminal-rich-backdrop" onClick={() => setRichContent(null)}>
+          <div className="terminal-rich-backdrop" onClick={suspendForeground}>
             <div className="terminal-rich" onClick={(e) => e.stopPropagation()}>
               <div
                 ref={richBodyRef}
@@ -55,16 +57,16 @@ export default function Terminal() {
                   )
                 }
               >
-                {state.richContent.node}
+                {richContent.node}
               </div>
               <div className="terminal-rich-status">
                 <span className="terminal-rich-status-left">
-                  {state.richContent.meta.title}
-                  {state.richContent.meta.type && (
-                    <span className="terminal-rich-status-type">[{state.richContent.meta.type}]</span>
+                  {richContent.meta.title}
+                  {richContent.meta.type && (
+                    <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
                   )}
                 </span>
-                {state.richContent.meta.type === 'markdown' && (
+                {richContent.meta.type === 'markdown' && (
                   <span className="terminal-rich-status-scroll">{scrollLabel}</span>
                 )}
               </div>

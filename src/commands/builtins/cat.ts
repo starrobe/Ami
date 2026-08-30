@@ -24,14 +24,14 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
   // Images → rich content preview
   const ext = target.slice(target.lastIndexOf('.')).toLowerCase();
   if (IMAGE_EXTS.includes(ext)) {
-    ctx.setRichContent(
-      React.createElement('img', {
+    ctx.spawnPanel(`cat ${target}`, {
+      node: React.createElement('img', {
         src: node.content,
         alt: target,
         style: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
       }),
-      { title: target, type: ext.slice(1) }
-    );
+      meta: { title: target, type: ext.slice(1) },
+    });
     return '';
   }
 
@@ -42,16 +42,16 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
     const body = frontmatterMatch ? frontmatterMatch[2] : content;
 
     // Show loading placeholder immediately
-    ctx.setRichContent(
-      React.createElement('div', { className: 'markdown-loading' }, 'Loading...'),
-      { title: target, type: 'markdown' }
-    );
+    const proc = ctx.spawnPanel(`cat ${target}`, {
+      node: React.createElement('div', { className: 'markdown-loading' }, 'Loading...'),
+      meta: { title: target, type: 'markdown' },
+    });
 
     import('../../output/MarkdownView').then(({ default: MarkdownView }) => {
-      ctx.setRichContent(
-        React.createElement(MarkdownView, { content: body }),
-        { title: target, type: 'markdown' }
-      );
+      proc.setView({
+        node: React.createElement(MarkdownView, { content: body }),
+        meta: { title: target, type: 'markdown' },
+      });
     });
     return '';
   }

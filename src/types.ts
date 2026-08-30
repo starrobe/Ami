@@ -38,7 +38,6 @@ export interface CommandContext {
   fs: DirNode;
   setCwd: (path: string) => void;
   appendOutput: (text: string) => void;
-  setRichContent: (node: ReactNode | null, meta?: RichContentMeta) => void;
   manager: ProcessManager;
   spawnPanel: (name: string, rich: RichContent) => PanelProcess;
   theme: string;
@@ -47,7 +46,7 @@ export interface CommandContext {
 }
 
 // Commands return plain text written straight to the terminal, or nothing
-// (output is produced through ctx.appendOutput / ctx.setRichContent instead).
+// (output is produced through ctx.appendOutput / ctx.spawnPanel instead).
 export type CommandHandler = (
   ctx: CommandContext,
   parsed: ParsedCommand

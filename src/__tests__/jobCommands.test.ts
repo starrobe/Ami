@@ -22,7 +22,6 @@ function makeCtx(pm: ProcessManager): CommandContext {
     fs: createInitialFS(),
     setCwd: () => {},
     appendOutput: () => {},
-    setRichContent: () => {},
     manager: pm,
     spawnPanel: () => { throw new Error('unused'); },
     theme: 'default',
