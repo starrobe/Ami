@@ -79,6 +79,9 @@ export function createProcessManager(): ProcessManager {
         proc = mostRecent();
         if (!proc) return 'fg: no jobs';
       }
+      if (foregroundPid !== null && foregroundPid !== proc.pid) {
+        processes.get(foregroundPid)?.signal('SIGSTOP');
+      }
       if (proc.state === 'stopped') proc.signal('SIGCONT');
       foregroundPid = proc.pid;
       emit();

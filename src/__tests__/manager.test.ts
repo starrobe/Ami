@@ -64,6 +64,16 @@ describe('createProcessManager', () => {
     expect(pm.getForeground()).toBe(p);
   });
 
+  it('fg suspends the current foreground before taking over', () => {
+    const pm = createProcessManager();
+    const p1 = pm.spawn((pid) => makeProcess(pid));
+    const p2 = pm.spawn((pid) => makeProcess(pid));
+    pm.fg('%1');
+    expect(p2.state).toBe('stopped');
+    expect(p1.state).toBe('running');
+    expect(pm.getForeground()).toBe(p1);
+  });
+
   it('bg resumes a stopped job and keeps it background', () => {
     const pm = createProcessManager();
     const p = pm.spawn((pid) => makeProcess(pid));
