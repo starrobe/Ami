@@ -5,14 +5,14 @@
 
 ## 目标
 
-为 Ami Terminal 引入一套**完整进程模拟**的作业控制（job control）子系统：进程有 PID、可收信号（SIGSTOP/SIGCONT/SIGTERM/SIGKILL）、有前台/后台之分；用户可用 `jobs`/`fg`/`bg`/`kill`/`ps` 管理进程，用 `Ctrl+Z` 挂起前台。核心场景是把 rich content 面板（`cat`/`whoami`）当作进程：关闭时挂到后台，随时重新唤起；并为未来的后台任务（如音乐播放）预留同一套接口。
+为 Ami Terminal 引入一套**完整进程模拟**的作业控制（job control）子系统：进程有 PID、可收信号（SIGSTOP/SIGCONT/SIGTERM/SIGKILL）、有前台/后台之分；用户可用 `jobs`/`fg`/`bg`/`kill`/`ps` 管理进程，用 `Ctrl+Z` 挂起前台。核心场景是把 rich content 面板（`cat`/`whoami`）当作进程：关闭时挂到后台，随时重新唤起；并为未来新增进程类型预留同一套接口。
 
 ## 需求（已确认决策）
 
 | # | 决策 | 说明 |
 |---|------|------|
 | 1 | 完整进程模拟 | PID、信号、fg/bg/kill |
-| 2 | 后台行为按类型区分 | 有运行体的 job（音乐）后台继续跑；无运行体的 job（面板）后台=挂起待恢复 |
+| 2 | 后台行为由进程实现决定 | 框架统一处理前台/后台与状态；进程通过钩子自行定义 running/stopped 语义——有的后台继续执行，有的仅隐藏 |
 | 3 | 完整信号机制 | SIGSTOP/SIGCONT/SIGTERM/SIGKILL，job 有信号处理器，fg/bg/kill 内部走信号 |
 | 4 | 扁平进程表 + 预留 PPID | 当前无 fork/exec，PPID 恒为 0，为未来树形升级留口 |
 | 5 | 命令面 | `jobs`/`fg`/`bg`/`kill`/`ps` + `Ctrl+Z` |
@@ -25,7 +25,7 @@
 
 - **进程（Process）**：最小单元，有 `pid`、`ppid`、`state`（running/stopped/terminated）、`name`。
 - **前台/后台**：终端同一时刻至多一个**前台进程**（其 `view()` 被渲染）。后台进程不渲染，但保留在进程表。
-- **运行体（running body）**：进程是否有异步工作。有运行体的进程（如音乐）在后台 `running` 状态下继续执行；无运行体的进程（如面板）后台 `stopped` 状态只是「隐藏待恢复」。**manager 不感知运行体**——它只发信号、管前台指针，「后台继续跑」由进程实现在 `running` 状态下自行维持。
+- **后台行为由进程实现决定**：框架只负责状态机（running/stopped/terminated）、信号分发与前台/后台指针。一个进程「running」具体意味着什么（后台继续执行 vs 仅处于可显示状态）由实现通过 `onStop`/`onContinue`/`onTerminate` 钩子自行定义。**manager 不感知进程内部运行逻辑**——它只发信号、管前台指针。
 
 ## 目录结构（新增）
 
@@ -37,7 +37,7 @@ src/process/
 └── panelProcess.ts   # PanelProcess —— 富内容面板进程（当前唯一实现）
 ```
 
-未来音乐新增 `musicProcess.ts`，实现同一 `Process` 接口，不改现有文件。
+未来新功能 = 新增一个实现 `Process` 接口的文件，不改现有文件。
 
 ## 数据模型
 
@@ -58,9 +58,9 @@ export type ProcessState = 'running' | 'stopped' | 'terminated';
 export interface Process {
   readonly pid: number;
   readonly ppid: number;       // 预留，当前恒为 0
-  readonly name: string;       // 命令名：cat / whoami / music ...
+  readonly name: string;       // 命令名：cat / whoami / ...
   state: ProcessState;
-  view(): RichContent | null;  // 前台渲染；无可视输出返回 null（如音乐）
+  view(): RichContent | null;  // 前台渲染；无可视输出的进程返回 null
   signal(sig: Signal): void;   // 信号处理 = 生命周期钩子
 }
 ```
@@ -133,15 +133,12 @@ export interface ProcessManager {
 
 - 继承 `BaseProcess` 默认状态机。
 - `view()` 返回面板内容（Markdown / 图片 / whoami）。
-- **无运行体**：后台 `stopped` 状态 =「隐藏待恢复」。
+- 无连续工作：后台 `stopped` 状态 =「隐藏待恢复」。
 - view 可变：`cat` 的 markdown 懒加载（先 `Loading...` 占位，异步替换成 `MarkdownView`），故暴露 `setView(rich)` 并调 `notify()`。
 
-### `MusicProcess`（未来，接口草图）
+### 扩展方式
 
-- 实现同一 `Process` 接口，内部持有 `Audio`/Web Audio。
-- `SIGSTOP`=暂停、`SIGCONT`=继续播放、`SIGTERM`=停止并释放、`SIGKILL`=强制停止（跳过清理）。
-- `view()` 返回 `null`（或「正在播放」小组件）。
-- 有运行体：后台 `running` 状态继续播放；更新标题/进度时调 `notify()`。
+新进程类型只需实现 `Process` 接口（或继承 `BaseProcess` 覆写钩子）：`signal` 各信号下的行为由实现自行定义（例如后台 `running` 时维持异步工作），`view()` 返回前台呈现或 `null`。框架不对具体进程类型做任何假设——任何未来功能，都是一个新的 `Process` 实现。
 
 ## 终端与命令集成
 
@@ -195,7 +192,7 @@ export interface ProcessManager {
 - 不跨刷新持久化（纯内存）。
 - 不做真实 fork/exec（PPID 仅为预留字段）。
 - 不实现 SIGINT/SIGHUP 等其余信号（当前仅 4 个）。
-- 本次不实现 `MusicProcess`（仅定义接口，供未来使用）。
+- 本次不实现任何新的具体进程类型（音乐等仅为未来扩展方向，非本次范围）。
 
 ## 测试
 
