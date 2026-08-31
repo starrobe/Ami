@@ -152,6 +152,17 @@ export function useTerminal() {
     return processManagerRef.current.subscribe(() => forceRender((n) => n + 1));
   }, []);
 
+  // A foreground panel is "open" when the manager has a foreground process.
+  const panelOpen = processManagerRef.current.getForeground() !== null;
+
+  // Stop the cursor blinking while a panel is open (the terminal is not
+  // accepting input then).
+  useEffect(() => {
+    const term = xtermRef.current;
+    if (!term) return;
+    term.options.cursorBlink = !panelOpen;
+  }, [panelOpen]);
+
   // Cache the populated registry
   const registryRef = useRef<ReturnType<typeof createCommandRegistry> | null>(null);
   const getRegistry = useCallback(() => {
