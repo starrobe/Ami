@@ -27,7 +27,6 @@ export interface InputHandlerDeps {
   fsRef: { current: DirNode };
   processManagerRef: { current: ProcessManager };
   executeCommand: (input: string) => void;
-  writePrompt: () => void;
   suspendForeground: () => void;
   interruptForeground: () => void;
   showSuggestion: () => void;
@@ -50,7 +49,6 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
     fsRef,
     processManagerRef,
     executeCommand,
-    writePrompt,
     suspendForeground,
     interruptForeground,
     showSuggestion,
@@ -157,28 +155,13 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
 
     // Handle Ctrl+Z (suspend foreground process to background)
     if (data === '\x1a') {
-      const fg = processManagerRef.current.getForeground();
-      if (fg) {
-        suspendForeground();
-        term.write(`^Z\r\n[1]+  Stopped   ${fg.name}\r\n`);
-      } else {
-        term.write('^Z\r\n');
-      }
-      suggestionRef.current = '';
-      inputBufferRef.current = '';
-      cursorPosRef.current = 0;
-      writePrompt();
+      suspendForeground();
       return;
     }
 
     // Handle Ctrl+C (terminate foreground process)
     if (data === '\x03') {
       interruptForeground();
-      suggestionRef.current = '';
-      term.write('^C\r\n');
-      inputBufferRef.current = '';
-      cursorPosRef.current = 0;
-      writePrompt();
       return;
     }
 

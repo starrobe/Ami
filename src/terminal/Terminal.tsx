@@ -5,7 +5,7 @@ import { formatScrollPosition } from '../utils/scrollPosition';
 import './Terminal.css';
 
 export default function Terminal() {
-  const { containerRef, initTerminal, manager, focusTerminal } = useTerminal();
+  const { containerRef, initTerminal, manager, focusTerminal, suspendForeground, interruptForeground } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const pendingGRef = useRef(false);
@@ -86,6 +86,18 @@ export default function Terminal() {
     if (!richContent || searchOpen) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        e.stopPropagation();
+        suspendForeground();
+        return;
+      }
+      if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        e.stopPropagation();
+        interruptForeground();
+        return;
+      }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       if (e.key === 'q' || e.key === 'Escape') {
@@ -125,7 +137,7 @@ export default function Terminal() {
 
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
-  }, [richContent, searchOpen, scrollToBottom, scrollToTop, terminatePanel]);
+  }, [richContent, searchOpen, scrollToBottom, scrollToTop, terminatePanel, suspendForeground, interruptForeground]);
 
   return (
     <div className="terminal-shell">

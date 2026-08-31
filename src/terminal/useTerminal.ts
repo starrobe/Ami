@@ -134,14 +134,28 @@ export function useTerminal() {
   const suspendForeground = useCallback(() => {
     const pm = processManagerRef.current;
     const fg = pm.getForeground();
-    if (fg) pm.signal(fg.pid, 'SIGSTOP');
-  }, []);
+    if (fg) {
+      pm.signal(fg.pid, 'SIGSTOP');
+      xtermRef.current?.write(`^Z\r\n[1]+  Stopped   ${fg.name}\r\n`);
+    } else {
+      xtermRef.current?.write('^Z\r\n');
+    }
+    suggestionRef.current = '';
+    inputBufferRef.current = '';
+    cursorPosRef.current = 0;
+    writePrompt();
+  }, [writePrompt]);
 
   const interruptForeground = useCallback(() => {
     const pm = processManagerRef.current;
     const fg = pm.getForeground();
     if (fg) pm.signal(fg.pid, 'SIGINT');
-  }, []);
+    xtermRef.current?.write('^C\r\n');
+    suggestionRef.current = '';
+    inputBufferRef.current = '';
+    cursorPosRef.current = 0;
+    writePrompt();
+  }, [writePrompt]);
 
   const focusTerminal = useCallback(() => {
     xtermRef.current?.focus();
@@ -272,7 +286,6 @@ export function useTerminal() {
       fsRef,
       processManagerRef,
       executeCommand,
-      writePrompt,
       suspendForeground,
       interruptForeground,
       showSuggestion,
@@ -355,5 +368,7 @@ export function useTerminal() {
     state,
     manager: processManagerRef.current,
     focusTerminal,
+    suspendForeground,
+    interruptForeground,
   };
 }
