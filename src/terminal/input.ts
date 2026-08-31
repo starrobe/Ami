@@ -108,6 +108,12 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
   };
 
   return (data: string) => {
+    // While a panel is open (a foreground process exists), the shell does not
+    // accept input — only Ctrl+Z (suspend) and Ctrl+C (terminate) are handled.
+    if (processManagerRef.current.getForeground() !== null && data !== '\x1a' && data !== '\x03') {
+      return;
+    }
+
     // Reset tab-cycle state on any non-Tab/non-ShiftTab key
     if (data !== '\t' && data !== '\x1b[Z') {
       if (tabCycle.current) {
