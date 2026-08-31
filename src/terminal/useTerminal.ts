@@ -143,6 +143,10 @@ export function useTerminal() {
     if (fg) pm.signal(fg.pid, 'SIGINT');
   }, []);
 
+  const focusTerminal = useCallback(() => {
+    xtermRef.current?.focus();
+  }, []);
+
   const [, forceRender] = useState(0);
   useEffect(() => {
     return processManagerRef.current.subscribe(() => forceRender((n) => n + 1));
@@ -345,5 +349,6 @@ export function useTerminal() {
     state,
     manager: processManagerRef.current,
     suspendForeground,
+    focusTerminal,
   };
 }

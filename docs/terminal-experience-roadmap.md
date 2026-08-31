@@ -9,6 +9,7 @@
 - [x] `ErrorBoundary` 静默吞错 —— 富内容渲染失败时回退显示错误信息，不再凭空消失。
 - [x] `useTerminal.ts` 拆分 —— 716→349 行，拆为 `input`（按键处理）、`completion`（补全，纯函数可测）、`register`（命令注册）、`prompt`（提示符）。
 - [x] `Ctrl+C` 语义 —— 改发 `SIGINT`（中断前台进程），`Signal` 类型新增 SIGINT，与 `kill` 的 `SIGTERM`/`SIGKILL` 区分。
+- [x] 面板快捷键 —— `G`（跳到底部）、`gg`（跳到顶部）、`/`（搜索并滚动到首个匹配）。
 
 ## 待优化（按优先级）
 
@@ -34,7 +35,7 @@
 
 ### 低优先级 —— 打磨
 
-- [ ] 面板分页体验：`cat` 打开 markdown 后支持 `q` 退出、`j/k` 滚动、`G`/`gg` 跳转、`/` 搜索（现在只能鼠标滚）
+- [ ] 面板分页体验（剩余）：`q` 退出、`j/k` 滚动
 - [ ] 提示符增强：显示 git 分支、路径过长缩写、自定义 PS1
 - [ ] 配置持久化：历史 / 主题 / 别名存 `localStorage`，刷新不丢
 - [ ] 主题扩展（暂缓）：目前 `themes.ts` 只有 `default`，`theme` 命令形同虚设 —— 补 dracula / solarized / gruvbox / catppuccin

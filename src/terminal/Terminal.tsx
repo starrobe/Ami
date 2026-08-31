@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTerminal } from './useTerminal';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { formatScrollPosition } from '../utils/scrollPosition';
 import './Terminal.css';
 
 export default function Terminal() {
-  const { containerRef, initTerminal, manager, suspendForeground } = useTerminal();
+  const { containerRef, initTerminal, manager, suspendForeground, focusTerminal } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingGRef = useRef(false);
   const [scrollLabel, setScrollLabel] = useState('Top');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const richContent = manager.getForeground()?.view() ?? null;
 
@@ -29,11 +33,87 @@ export default function Terminal() {
     };
   }, [initTerminal]);
 
-  // Reset scroll position and label whenever the rich content changes
+  // Reset scroll/search state whenever the rich content changes
   useEffect(() => {
     if (richBodyRef.current) richBodyRef.current.scrollTop = 0;
     setScrollLabel('Top');
+    setSearchOpen(false);
+    setSearchQuery('');
+    pendingGRef.current = false;
   }, [richContent]);
+
+  // Focus the search input when it appears
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const scrollToTop = useCallback(() => {
+    if (richBodyRef.current) richBodyRef.current.scrollTop = 0;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const el = richBodyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
+  const scrollToFirstMatch = useCallback((query: string) => {
+    const root = richBodyRef.current;
+    if (!root || !query) return;
+    const lower = query.toLowerCase();
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent ?? '';
+      const idx = text.toLowerCase().indexOf(lower);
+      if (idx !== -1) {
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + query.length);
+        const rect = range.getBoundingClientRect();
+        root.scrollTop += rect.top - root.getBoundingClientRect().top - root.clientHeight / 2;
+        return;
+      }
+    }
+  }, []);
+
+  // Intercept pager keys while the panel is open (terminal keeps focus for commands)
+  useEffect(() => {
+    if (!richContent || searchOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingGRef.current = false;
+        setSearchOpen(true);
+        return;
+      }
+      if (e.key === 'G') {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingGRef.current = false;
+        scrollToBottom();
+        return;
+      }
+      if (e.key === 'g') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (pendingGRef.current) {
+          pendingGRef.current = false;
+          scrollToTop();
+        } else {
+          pendingGRef.current = true;
+        }
+        return;
+      }
+      pendingGRef.current = false;
+    };
+
+    window.addEventListener('keydown', onKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
+  }, [richContent, searchOpen, scrollToBottom, scrollToTop]);
 
   return (
     <div className="terminal-shell">
@@ -60,12 +140,34 @@ export default function Terminal() {
                 {richContent.node}
               </div>
               <div className="terminal-rich-status">
-                <span className="terminal-rich-status-left">
-                  {richContent.meta.title}
-                  {richContent.meta.type && (
-                    <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
-                  )}
-                </span>
+                {searchOpen ? (
+                  <input
+                    ref={searchInputRef}
+                    className="terminal-rich-search"
+                    type="text"
+                    value={searchQuery}
+                    placeholder="search…"
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      scrollToFirstMatch(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === 'Escape') {
+                        e.stopPropagation();
+                        setSearchOpen(false);
+                        setSearchQuery('');
+                        focusTerminal();
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="terminal-rich-status-left">
+                    {richContent.meta.title}
+                    {richContent.meta.type && (
+                      <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
+                    )}
+                  </span>
+                )}
                 {richContent.meta.type === 'markdown' && (
                   <span className="terminal-rich-status-scroll">{scrollLabel}</span>
                 )}
