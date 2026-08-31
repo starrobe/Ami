@@ -7,6 +7,7 @@
 - [x] `ls` 与 Tab 补全列表的中文列宽错位 —— `columnLayout.ts` 改用 `stringWidth` 按显示宽度对齐（含测试）。
 - [x] `Ctrl+L` 行内无效 —— 现在任何时刻按 `Ctrl+L` 都清屏并重绘提示符 + 当前输入 + 光标位置。
 - [x] `ErrorBoundary` 静默吞错 —— 富内容渲染失败时回退显示错误信息，不再凭空消失。
+- [x] `useTerminal.ts` 拆分 —— 716→349 行，拆为 `input`（按键处理）、`completion`（补全，纯函数可测）、`register`（命令注册）、`prompt`（提示符）。
 
 ## 待优化（按优先级）
 
@@ -63,14 +64,3 @@ glob、`&&`/`;`、`$VAR`、`&` 后台、`>` 重定向。这是从「命令执行
 - **可写文件系统**：`touch` / `mkdir` / `rm` / `mv`（内存态或 `localStorage` 持久化）。
 - **`less` 分页器**。
 - **多标签终端**。
-
-## 架构建议
-
-`useTerminal.ts` 目前约 700 行，揉进了输入处理、补全、命令执行、进程管理、终端初始化五件事。继续加行编辑/管道还会膨胀。建议拆成：
-
-- `useTerminal` —— 生命周期与 xterm 初始化
-- `keybindings` —— 按键处理
-- `completion` —— 补全
-- `commandExecutor` —— 命令执行 / 管道
-
-思路与进程子系统一致：独立纯逻辑模块 + React 桥接。
