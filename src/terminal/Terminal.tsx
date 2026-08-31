@@ -58,7 +58,10 @@ export default function Terminal() {
 
   const scrollToFirstMatch = useCallback((query: string) => {
     const root = richBodyRef.current;
-    if (!root || !query) return;
+    if (!root || !query) {
+      window.getSelection()?.removeAllRanges();
+      return;
+    }
     const lower = query.toLowerCase();
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node: Node | null;
@@ -71,9 +74,13 @@ export default function Terminal() {
         range.setEnd(node, idx + query.length);
         const rect = range.getBoundingClientRect();
         root.scrollTop += rect.top - root.getBoundingClientRect().top - root.clientHeight / 2;
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
         return;
       }
     }
+    window.getSelection()?.removeAllRanges();
   }, []);
 
   const terminatePanel = useCallback(() => {
@@ -180,6 +187,7 @@ export default function Terminal() {
                         e.stopPropagation();
                         setSearchOpen(false);
                         setSearchQuery('');
+                        window.getSelection()?.removeAllRanges();
                         focusTerminal();
                       }
                     }}
