@@ -44,6 +44,9 @@ export function createProcessManager(): ProcessManager {
 
   return {
     spawn(build) {
+      if (foregroundPid !== null) {
+        processes.get(foregroundPid)?.signal('SIGSTOP');
+      }
       const pid = pidCounter++;
       const proc = build(pid, emit);
       processes.set(pid, proc);
@@ -75,6 +78,9 @@ export function createProcessManager(): ProcessManager {
       } else {
         proc = mostRecent();
         if (!proc) return 'fg: no jobs';
+      }
+      if (foregroundPid !== null && foregroundPid !== proc.pid) {
+        processes.get(foregroundPid)?.signal('SIGSTOP');
       }
       if (proc.state === 'stopped') proc.signal('SIGCONT');
       foregroundPid = proc.pid;

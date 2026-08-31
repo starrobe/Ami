@@ -22,12 +22,12 @@ describe('createProcessManager', () => {
     expect(pm.getForeground()).toBe(p2);
   });
 
-  it('spawn demotes the current foreground without suspending it', () => {
+  it('spawn suspends the current foreground', () => {
     const pm = createProcessManager();
     const p1 = pm.spawn((pid) => makeProcess(pid)) as SpyProcess;
-    const p2 = pm.spawn((pid) => makeProcess(pid));
-    expect(p1.state).toBe('running');
-    expect(pm.getForeground()).toBe(p2);
+    pm.spawn((pid) => makeProcess(pid));
+    expect(p1.state).toBe('stopped');
+    expect(p1.events).toEqual(['stop']);
   });
 
   it('SIGSTOP on foreground clears foreground', () => {
@@ -64,12 +64,13 @@ describe('createProcessManager', () => {
     expect(pm.getForeground()).toBe(p);
   });
 
-  it('fg switches foreground without suspending the old one', () => {
+  it('fg suspends the current foreground before taking over', () => {
     const pm = createProcessManager();
     const p1 = pm.spawn((pid) => makeProcess(pid));
     const p2 = pm.spawn((pid) => makeProcess(pid));
     pm.fg('%1');
-    expect(p2.state).toBe('running');
+    expect(p2.state).toBe('stopped');
+    expect(p1.state).toBe('running');
     expect(pm.getForeground()).toBe(p1);
   });
 
