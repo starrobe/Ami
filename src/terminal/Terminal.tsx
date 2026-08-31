@@ -77,6 +77,12 @@ export default function Terminal() {
         const sel = window.getSelection();
         sel?.removeAllRanges();
         sel?.addRange(range);
+        // Selecting the match can steal focus from the search input; restore it.
+        const input = searchInputRef.current;
+        if (input && document.activeElement !== input) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
         return;
       }
     }
