@@ -43,6 +43,10 @@ export abstract class BaseProcess implements Process {
         this.state = 'terminated';
         this.onTerminate(false);
         break;
+      case 'SIGINT':
+        this.state = 'terminated';
+        this.onTerminate(false);
+        break;
       case 'SIGKILL':
         this.state = 'terminated';
         this.onTerminate(true);

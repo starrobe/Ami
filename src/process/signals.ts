@@ -1,1 +1,1 @@
-export type Signal = 'SIGSTOP' | 'SIGCONT' | 'SIGTERM' | 'SIGKILL';
+export type Signal = 'SIGSTOP' | 'SIGCONT' | 'SIGTERM' | 'SIGKILL' | 'SIGINT';

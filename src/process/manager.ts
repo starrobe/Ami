@@ -61,7 +61,7 @@ export function createProcessManager(): ProcessManager {
       proc.signal(sig);
       if (sig === 'SIGSTOP' && foregroundPid === pid) {
         foregroundPid = null;
-      } else if (sig === 'SIGTERM' || sig === 'SIGKILL') {
+      } else if (sig === 'SIGTERM' || sig === 'SIGKILL' || sig === 'SIGINT') {
         processes.delete(pid);
         if (foregroundPid === pid) foregroundPid = null;
       }

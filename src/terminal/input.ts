@@ -29,7 +29,7 @@ export interface InputHandlerDeps {
   executeCommand: (input: string) => void;
   writePrompt: () => void;
   suspendForeground: () => void;
-  terminateForeground: () => void;
+  interruptForeground: () => void;
   showSuggestion: () => void;
 }
 
@@ -52,7 +52,7 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
     executeCommand,
     writePrompt,
     suspendForeground,
-    terminateForeground,
+    interruptForeground,
     showSuggestion,
   } = deps;
 
@@ -167,7 +167,7 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
 
     // Handle Ctrl+C (terminate foreground process)
     if (data === '\x03') {
-      terminateForeground();
+      interruptForeground();
       suggestionRef.current = '';
       term.write('^C\r\n');
       inputBufferRef.current = '';

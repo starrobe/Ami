@@ -58,6 +58,13 @@ describe('BaseProcess state machine', () => {
     expect(p.events).toEqual(['kill']);
   });
 
+  it('SIGINT terminates gracefully', () => {
+    const p = make();
+    p.signal('SIGINT');
+    expect(p.state).toBe('terminated');
+    expect(p.events).toEqual(['term']);
+  });
+
   it('signals after termination are no-ops', () => {
     const p = make();
     p.signal('SIGKILL');

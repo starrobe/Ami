@@ -8,6 +8,7 @@
 - [x] `Ctrl+L` 行内无效 —— 现在任何时刻按 `Ctrl+L` 都清屏并重绘提示符 + 当前输入 + 光标位置。
 - [x] `ErrorBoundary` 静默吞错 —— 富内容渲染失败时回退显示错误信息，不再凭空消失。
 - [x] `useTerminal.ts` 拆分 —— 716→349 行，拆为 `input`（按键处理）、`completion`（补全，纯函数可测）、`register`（命令注册）、`prompt`（提示符）。
+- [x] `Ctrl+C` 语义 —— 改发 `SIGINT`（中断前台进程），`Signal` 类型新增 SIGINT，与 `kill` 的 `SIGTERM`/`SIGKILL` 区分。
 
 ## 待优化（按优先级）
 
@@ -21,7 +22,6 @@
 - [ ] `Alt+B` / `Alt+F` / `Alt+D` —— 按词移动 / 删词（目前只有 `Ctrl+W`）
 - [ ] `Ctrl+P` / `Ctrl+N`、`Home` / `End`
 - [ ] `!!` / `!n` / `!$` —— 历史展开
-- [ ] `Ctrl+C` 语义修正 —— 真实 shell 发 `SIGINT`（可被进程区别处理），当前发 `SIGTERM` 且 `Signal` 类型无 SIGINT
 
 ### 中优先级 —— 命令覆盖与 shell 语法
 

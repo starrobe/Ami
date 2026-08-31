@@ -137,10 +137,10 @@ export function useTerminal() {
     if (fg) pm.signal(fg.pid, 'SIGSTOP');
   }, []);
 
-  const terminateForeground = useCallback(() => {
+  const interruptForeground = useCallback(() => {
     const pm = processManagerRef.current;
     const fg = pm.getForeground();
-    if (fg) pm.signal(fg.pid, 'SIGTERM');
+    if (fg) pm.signal(fg.pid, 'SIGINT');
   }, []);
 
   const [, forceRender] = useState(0);
@@ -264,7 +264,7 @@ export function useTerminal() {
       executeCommand,
       writePrompt,
       suspendForeground,
-      terminateForeground,
+      interruptForeground,
       showSuggestion,
     }));
 
@@ -337,7 +337,7 @@ export function useTerminal() {
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [executeCommand, writePrompt, historyRef, cwdRef, showSuggestion, suspendForeground, terminateForeground]);
+  }, [executeCommand, writePrompt, historyRef, cwdRef, showSuggestion, suspendForeground, interruptForeground]);
 
   return {
     containerRef,
