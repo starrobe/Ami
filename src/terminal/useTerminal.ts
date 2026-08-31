@@ -157,10 +157,6 @@ export function useTerminal() {
     writePrompt();
   }, [writePrompt]);
 
-  const focusTerminal = useCallback(() => {
-    xtermRef.current?.focus();
-  }, []);
-
   const [, forceRender] = useState(0);
   useEffect(() => {
     return processManagerRef.current.subscribe(() => forceRender((n) => n + 1));
@@ -367,7 +363,6 @@ export function useTerminal() {
     initTerminal,
     state,
     manager: processManagerRef.current,
-    focusTerminal,
     suspendForeground,
     interruptForeground,
   };
