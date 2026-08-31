@@ -4,6 +4,8 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { formatScrollPosition } from '../utils/scrollPosition';
 import './Terminal.css';
 
+const LINE_SCROLL = 40;
+
 export default function Terminal() {
   const { containerRef, initTerminal, manager, suspendForeground, interruptForeground } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
@@ -46,6 +48,11 @@ export default function Terminal() {
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
+  const scrollBy = useCallback((delta: number) => {
+    const el = richBodyRef.current;
+    if (el) el.scrollTop += delta;
+  }, []);
+
   const terminatePanel = useCallback(() => {
     const fg = manager.getForeground();
     if (fg) manager.signal(fg.pid, 'SIGTERM');
@@ -84,6 +91,20 @@ export default function Terminal() {
         scrollToBottom();
         return;
       }
+      if (e.key === 'j') {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingGRef.current = false;
+        scrollBy(LINE_SCROLL);
+        return;
+      }
+      if (e.key === 'k') {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingGRef.current = false;
+        scrollBy(-LINE_SCROLL);
+        return;
+      }
       if (e.key === 'g') {
         e.preventDefault();
         e.stopPropagation();
@@ -100,7 +121,7 @@ export default function Terminal() {
 
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
-  }, [richContent, scrollToBottom, scrollToTop, terminatePanel, suspendForeground, interruptForeground]);
+  }, [richContent, scrollToBottom, scrollToTop, scrollBy, terminatePanel, suspendForeground, interruptForeground]);
 
   return (
     <div className="terminal-shell">
