@@ -5,7 +5,7 @@ import { formatScrollPosition } from '../utils/scrollPosition';
 import './Terminal.css';
 
 export default function Terminal() {
-  const { containerRef, initTerminal, manager, suspendForeground, focusTerminal } = useTerminal();
+  const { containerRef, initTerminal, manager, focusTerminal } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const pendingGRef = useRef(false);
@@ -122,7 +122,7 @@ export default function Terminal() {
       </div>
       {richContent && (
         <ErrorBoundary>
-          <div className="terminal-rich-backdrop" onClick={suspendForeground}>
+          <div className="terminal-rich-backdrop">
             <div className="terminal-rich" onClick={(e) => e.stopPropagation()}>
               <div
                 ref={richBodyRef}

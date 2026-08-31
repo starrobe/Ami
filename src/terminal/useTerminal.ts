@@ -182,11 +182,6 @@ export function useTerminal() {
       history: historyRef.current,
     }));
 
-    // Suspend the foreground process for commands that don't manage it themselves
-    if (!['cat', 'whoami', 'clear'].includes(parsed.cmd)) {
-      suspendForeground();
-    }
-
     const registry = getRegistry();
 
     // Build context using refs for current values
@@ -209,7 +204,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [appendOutput, setCwd, setTheme, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef, suspendForeground]);
+  }, [appendOutput, setCwd, setTheme, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
@@ -348,7 +343,6 @@ export function useTerminal() {
     initTerminal,
     state,
     manager: processManagerRef.current,
-    suspendForeground,
     focusTerminal,
   };
 }
