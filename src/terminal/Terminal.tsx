@@ -76,6 +76,11 @@ export default function Terminal() {
     }
   }, []);
 
+  const terminatePanel = useCallback(() => {
+    const fg = manager.getForeground();
+    if (fg) manager.signal(fg.pid, 'SIGTERM');
+  }, [manager]);
+
   // Intercept pager keys while the panel is open (terminal keeps focus for commands)
   useEffect(() => {
     if (!richContent || searchOpen) return;
@@ -83,6 +88,13 @@ export default function Terminal() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
+      if (e.key === 'q' || e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingGRef.current = false;
+        terminatePanel();
+        return;
+      }
       if (e.key === '/') {
         e.preventDefault();
         e.stopPropagation();
@@ -113,7 +125,7 @@ export default function Terminal() {
 
     window.addEventListener('keydown', onKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
-  }, [richContent, searchOpen, scrollToBottom, scrollToTop]);
+  }, [richContent, searchOpen, scrollToBottom, scrollToTop, terminatePanel]);
 
   return (
     <div className="terminal-shell">
