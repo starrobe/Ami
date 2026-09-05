@@ -158,7 +158,7 @@ export default function Terminal() {
                   )}
                 </span>
                 <span className="terminal-rich-status-hint">
-                  {richContent.meta.interactive ? '↑/↓ 选择 · Enter 打开 · Esc 返回 · Tab 切换' : 'q / Esc 关闭'}
+                  {richContent.meta.interactive ? '↑/↓ 选择 · / 搜索 · Enter 打开 · Esc 返回 · Tab 切换' : 'q / Esc 关闭'}
                 </span>
                 {richContent.meta.type === 'markdown' && (
                   <span className="terminal-rich-status-scroll">{scrollLabel}</span>

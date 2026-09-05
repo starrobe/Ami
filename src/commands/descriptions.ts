@@ -18,7 +18,7 @@ export const commandDescriptions: Record<string, string> = {
   ls: 'list directory contents',
   cd: 'change the working directory',
   cat: 'preview files (md, images, text)',
-  palette: 'open the search palette (blogs / search / tags)',
+  palette: 'open the search palette (blogs / tags)',
   clear: 'clear the terminal screen',
   help: 'display this help message',
   pwd: 'print working directory',

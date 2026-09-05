@@ -4,7 +4,7 @@ import type { BlogInfo } from '../fs/blogIndex';
 import { listTags, searchBlogs } from '../fs/blogIndex';
 import './Palette.css';
 
-type Mode = 'blogs' | 'search' | 'tags';
+type Mode = 'blogs' | 'tags';
 
 type Item =
   | { kind: 'blog'; blog: BlogInfo }
@@ -12,7 +12,6 @@ type Item =
 
 const MODES: { id: Mode; label: string }[] = [
   { id: 'blogs', label: '博客' },
-  { id: 'search', label: '搜索' },
   { id: 'tags', label: 'tag' },
 ];
 
@@ -32,9 +31,9 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   const tags = useMemo(() => listTags(blogs), [blogs]);
 
   const items = useMemo<Item[]>(() => {
-    if (mode === 'blogs') return blogs.map((blog) => ({ kind: 'blog', blog }));
-    if (mode === 'search') return searchBlogs(blogs, query).map((blog) => ({ kind: 'blog', blog }));
-    // tags mode
+    // Blog mode lists all blogs, filtered live by the search input.
+    if (mode === 'blogs') return searchBlogs(blogs, query).map((blog) => ({ kind: 'blog', blog }));
+    // Tags mode: list tags, then drill into a tag's blogs.
     if (tag === null) return tags.map((t) => ({ kind: 'tag', tag: t }));
     return blogs.filter((b) => b.tags.includes(tag)).map((blog) => ({ kind: 'blog', blog }));
   }, [mode, blogs, query, tag, tags]);
@@ -42,10 +41,7 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   const switchMode = (m: Mode) => {
     setMode(m);
     setSelected(0);
-    setQuery('');
     setTag(null);
-    if (m === 'search') requestAnimationFrame(() => inputRef.current?.focus());
-    else inputRef.current?.blur();
   };
 
   const activate = (item: Item) => {
@@ -61,9 +57,9 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   keyHandlerRef.current = (e: KeyboardEvent) => {
     if (e.isComposing || e.keyCode === 229) return;
     const isInput = (e.target as HTMLElement)?.tagName === 'INPUT';
-    // While the search input is focused, don't hijack the 1/2/3 mode keys
+    // While the search input is focused, don't hijack the 1/2 mode keys
     // so the digits reach the input.
-    if (isInput && (e.key === '1' || e.key === '2' || e.key === '3')) return;
+    if (isInput && (e.key === '1' || e.key === '2')) return;
     const clamped = Math.max(0, Math.min(items.length - 1, selected));
 
     switch (e.key) {
@@ -92,15 +88,18 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         e.preventDefault();
         switchMode(MODES[(MODES.findIndex((x) => x.id === mode) + 1) % MODES.length].id);
         break;
+      case '/':
+        // Press "/" to search: focus the blog-mode filter input.
+        if (mode === 'blogs' && !isInput) {
+          e.preventDefault();
+          inputRef.current?.focus();
+        }
+        break;
       case '1':
         e.preventDefault();
         switchMode('blogs');
         break;
       case '2':
-        e.preventDefault();
-        switchMode('search');
-        break;
-      case '3':
         e.preventDefault();
         switchMode('tags');
         break;
@@ -130,7 +129,7 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         ))}
       </div>
 
-      {mode === 'search' && (
+      {mode === 'blogs' && (
         <input
           ref={inputRef}
           className="palette-input"
@@ -140,7 +139,6 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
             setSelected(0);
           }}
           placeholder="输入关键词搜索…"
-          autoFocus
         />
       )}
 
