@@ -20,6 +20,7 @@ export type FSEntry = FileNode | DirNode;
 export interface RichContentMeta {
   title: string;
   type: string;
+  interactive?: boolean;
 }
 
 export interface RichContent {

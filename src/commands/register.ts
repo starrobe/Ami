@@ -8,7 +8,7 @@ import { whoamiCommand } from './builtins/whoami';
 import { createHistoryCommand } from './builtins/history';
 import { lsCommand } from './builtins/ls';
 import { createCdCommand } from './builtins/cd';
-import { grepCommand } from './builtins/grep';
+import { paletteCommand } from './builtins/palette';
 import { catCommand } from './builtins/cat';
 import { themeCommand } from './builtins/theme';
 import { jobsCommand } from './builtins/jobs';
@@ -32,7 +32,7 @@ export function createCommandRegistry(
   registry.register('history', createHistoryCommand(getHistory));
   registry.register('ls', lsCommand);
   registry.register('cd', createCdCommand(getPrevCwd, setPrevCwd));
-  registry.register('grep', grepCommand);
+  registry.register('palette', paletteCommand);
   registry.register('cat', catCommand);
   registry.register('theme', themeCommand);
   registry.register('jobs', jobsCommand);

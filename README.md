@@ -21,7 +21,7 @@ npm test           # run tests
 | `ls` | List directory (`-l` detail, `-a` all) |
 | `cd <dir>` | Change directory (`..` / `~` / `-`) |
 | `cat <file>` | Preview files (`.md` → rich Markdown, images → preview, text → plain) |
-| `grep <pattern> <file>` | Search text (`-i` case, `-n` line numbers, `-r` recursive, `-t` tag) |
+| `palette` | Open search palette (blogs / search / tags) |
 | `echo <text>` | Print text (`-n` no newline) |
 | `pwd` | Print working directory |
 | `whoami` | Show profile panel |

@@ -1,16 +1,15 @@
 // Commands that accept file/directory arguments (for tab completion)
-export const fileArgCommands = ['cat', 'cd', 'ls', 'grep'];
+export const fileArgCommands = ['cat', 'cd', 'ls'];
 
 // Known flags per command (for tab completion)
 export const commandFlags: Record<string, string[]> = {
   ls: ['-l', '-a'],
-  grep: ['-i', '-n', '-r', '-t', '-h'],
   echo: ['-n'],
   kill: ['-9'],
 };
 
 export const commandNames = [
-  'ls', 'cd', 'cat', 'grep', 'clear',
+  'ls', 'cd', 'cat', 'palette', 'clear',
   'help', 'pwd', 'whoami', 'echo', 'theme', 'history',
   'jobs', 'fg', 'bg', 'kill', 'ps',
 ];
@@ -19,7 +18,7 @@ export const commandDescriptions: Record<string, string> = {
   ls: 'list directory contents',
   cd: 'change the working directory',
   cat: 'preview files (md, images, text)',
-  grep: 'search text (-i -n -r) or tags (-t), help (-h)',
+  palette: 'open the search palette (blogs / search / tags)',
   clear: 'clear the terminal screen',
   help: 'display this help message',
   pwd: 'print working directory',

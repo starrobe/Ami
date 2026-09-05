@@ -11,7 +11,7 @@ describe('parseCommand', () => {
   });
 
   it('parses long flags', () => {
-    expect(parseCommand('grep --help')).toEqual({ cmd: 'grep', args: [], flags: ['help'] });
+    expect(parseCommand('theme --help')).toEqual({ cmd: 'theme', args: [], flags: ['help'] });
   });
 
   it('parses args', () => {
@@ -32,6 +32,6 @@ describe('parseCommand', () => {
   });
 
   it('handles mixed flags and args', () => {
-    expect(parseCommand('grep -i -n pattern file')).toEqual({ cmd: 'grep', args: ['pattern', 'file'], flags: ['i', 'n'] });
+    expect(parseCommand('ls -l -a file.md other.md')).toEqual({ cmd: 'ls', args: ['file.md', 'other.md'], flags: ['l', 'a'] });
   });
 });
