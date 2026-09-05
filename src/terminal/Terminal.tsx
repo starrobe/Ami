@@ -172,7 +172,7 @@ export default function Terminal() {
               </div>
               <div className="terminal-rich-status">
                 {searchActive ? (
-                  <>
+                  <div className="terminal-rich-search">
                     <span className="terminal-rich-status-prompt">/</span>
                     <input
                       ref={searchInputRef}
@@ -180,7 +180,7 @@ export default function Terminal() {
                       value={searchQuery}
                       onChange={(e) => search.setQuery(e.target.value)}
                     />
-                  </>
+                  </div>
                 ) : (
                   <>
                     <span className="terminal-rich-status-left">

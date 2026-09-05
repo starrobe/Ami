@@ -186,8 +186,15 @@ html, body, #root {
   color: #666;
 }
 
+.terminal-rich-search {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
 .terminal-rich-status-prompt {
-  color: #666;
+  color: #e0e0e0;
 }
 
 .terminal-rich-status-search {
