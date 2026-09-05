@@ -18,6 +18,13 @@ export function createHelpCommand(registry: CommandRegistry): CommandHandler {
     output += '  Tab      autocomplete / cycle\r\n';
     output += '  Up/Down  command history\r\n';
     output += '  Ctrl+P   open search palette\r\n';
+    output += '\r\nSearch palette (palette / Ctrl+P):\r\n\r\n';
+    output += '  Up/Down / j/k   move selection (wraps)\r\n';
+    output += '  /               search (filter by title)\r\n';
+    output += '  Enter           open selected blog\r\n';
+    output += '  Esc             back / close / cancel search\r\n';
+    output += '  Tab / 1 / 2     switch mode (blogs / tags)\r\n';
+    output += '  Ctrl+Z / Ctrl+C suspend / terminate palette\r\n';
     output += '\r\n';
     return output;
   };
