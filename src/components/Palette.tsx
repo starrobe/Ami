@@ -68,9 +68,9 @@ export default function Palette({ blogs, onOpen, onClose, onSuspend, onInterrupt
   keyHandlerRef.current = (e: KeyboardEvent) => {
     if (e.isComposing || e.keyCode === 229) return;
     const isInput = (e.target as HTMLElement)?.tagName === 'INPUT';
-    // While the search input is focused, don't hijack the 1/2 mode keys
-    // or j/k navigation so those characters reach the input.
-    if (isInput && (e.key === '1' || e.key === '2' || e.key === 'j' || e.key === 'k')) return;
+    // While the search input is focused, don't hijack mode/navigation/quit
+    // keys so those characters reach the input.
+    if (isInput && (e.key === '1' || e.key === '2' || e.key === 'j' || e.key === 'k' || e.key === 'q')) return;
     const clamped = Math.max(0, Math.min(items.length - 1, selected));
 
     switch (e.key) {
@@ -141,6 +141,10 @@ export default function Palette({ blogs, onOpen, onClose, onSuspend, onInterrupt
           e.stopPropagation();
           onInterrupt();
         }
+        break;
+      case 'q':
+        e.preventDefault();
+        onClose();
         break;
     }
   };

@@ -22,7 +22,8 @@ export function createHelpCommand(registry: CommandRegistry): CommandHandler {
     output += '  Up/Down / j/k   move selection (wraps)\r\n';
     output += '  /               search (filter by title)\r\n';
     output += '  Enter           open selected blog\r\n';
-    output += '  Esc             back / close / cancel search\r\n';
+    output += '  q               close\r\n';
+    output += '  Esc             back / cancel search / close\r\n';
     output += '  Tab / 1 / 2     switch mode (blogs / tags)\r\n';
     output += '  Ctrl+Z / Ctrl+C suspend / terminate palette\r\n';
     output += '\r\n';
