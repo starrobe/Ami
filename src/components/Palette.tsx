@@ -129,19 +129,6 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         ))}
       </div>
 
-      {mode === 'blogs' && (
-        <input
-          ref={inputRef}
-          className="palette-input"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setSelected(0);
-          }}
-          placeholder="输入关键词搜索…"
-        />
-      )}
-
       <div className="palette-list">
         {items.length === 0 ? (
           <div className="palette-empty">无结果</div>
@@ -165,6 +152,22 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
           ))
         )}
       </div>
+
+      {mode === 'blogs' && (
+        <div className="palette-search">
+          <span className="palette-search-prompt">/</span>
+          <input
+            ref={inputRef}
+            className="palette-search-input"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelected(0);
+            }}
+            placeholder="搜索博客…"
+          />
+        </div>
+      )}
     </div>
   );
 }
