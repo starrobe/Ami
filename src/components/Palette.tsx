@@ -70,11 +70,11 @@ export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        setSelected((s) => Math.max(0, s - 1));
+        setSelected((s) => (items.length === 0 ? 0 : (s - 1 + items.length) % items.length));
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setSelected((s) => Math.max(0, Math.min(items.length - 1, s + 1)));
+        setSelected((s) => (items.length === 0 ? 0 : (s + 1) % items.length));
         break;
       case 'Enter':
         e.preventDefault();
