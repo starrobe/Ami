@@ -93,6 +93,14 @@ export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps
           onClose();
         }
         break;
+      case 'Backspace':
+        // vim-like: Backspace on an empty search cancels it.
+        if (isInput && search.getActive() && search.getQuery() === '') {
+          e.preventDefault();
+          search.setActive(false);
+          search.setQuery('');
+        }
+        break;
       case 'Tab':
         e.preventDefault();
         switchMode(MODES[(MODES.findIndex((x) => x.id === mode) + 1) % MODES.length].id);
