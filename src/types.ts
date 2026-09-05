@@ -53,6 +53,8 @@ export interface CommandContext {
   appendOutput: (text: string) => void;
   manager: ProcessManager;
   spawnPanel: (name: string, rich: RichContent) => PanelProcess;
+  suspendForeground: () => void;
+  interruptForeground: () => void;
   theme: string;
   setTheme: (name: string) => void;
   termCols: number;

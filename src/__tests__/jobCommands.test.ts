@@ -24,6 +24,8 @@ function makeCtx(pm: ProcessManager): CommandContext {
     appendOutput: () => {},
     manager: pm,
     spawnPanel: () => { throw new Error('unused'); },
+    suspendForeground: () => {},
+    interruptForeground: () => {},
     theme: 'default',
     setTheme: () => {},
     termCols: 80,

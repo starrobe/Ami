@@ -20,10 +20,12 @@ interface PaletteProps {
   blogs: BlogInfo[];
   onOpen: (path: string) => void;
   onClose: () => void;
+  onSuspend: () => void;
+  onInterrupt: () => void;
   search: SearchStore;
 }
 
-export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps) {
+export default function Palette({ blogs, onOpen, onClose, onSuspend, onInterrupt, search }: PaletteProps) {
   const [mode, setMode] = useState<Mode>('blogs');
   const [selected, setSelected] = useState(0);
   const [tag, setTag] = useState<string | null>(null);
@@ -126,6 +128,20 @@ export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps
         e.preventDefault();
         switchMode('tags');
         break;
+      case 'z':
+        if (e.ctrlKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          onSuspend();
+        }
+        break;
+      case 'c':
+        if (e.ctrlKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          onInterrupt();
+        }
+        break;
     }
   };
 
@@ -169,7 +185,7 @@ export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps
                   <span className="palette-item-path">{item.blog.path}</span>
                 </>
               ) : (
-                <span className="palette-item-title">#{item.tag}</span>
+                <span className="palette-item-title"># {item.tag}</span>
               )}
             </div>
           ))

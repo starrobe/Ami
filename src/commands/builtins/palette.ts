@@ -22,9 +22,15 @@ export const paletteCommand: CommandHandler = (ctx) => {
   const onClose = () => {
     ctx.manager.signal(proc.pid, 'SIGTERM');
   };
+  const onSuspend = () => {
+    ctx.suspendForeground();
+  };
+  const onInterrupt = () => {
+    ctx.interruptForeground();
+  };
 
   proc = ctx.spawnPanel('palette', {
-    node: React.createElement(Palette, { blogs, onOpen, onClose, search }),
+    node: React.createElement(Palette, { blogs, onOpen, onClose, onSuspend, onInterrupt, search }),
     meta: { title: 'palette', type: 'palette', interactive: true },
     search,
   });

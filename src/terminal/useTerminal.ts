@@ -198,11 +198,13 @@ export function useTerminal() {
       appendOutput,
       manager: processManagerRef.current,
       spawnPanel,
+      suspendForeground,
+      interruptForeground,
       theme: themeRef.current,
       setTheme,
       termCols: xtermRef.current?.cols ?? 80,
     };
-  }, [setCwd, appendOutput, spawnPanel, setTheme, cwdRef, themeRef]);
+  }, [setCwd, appendOutput, spawnPanel, setTheme, suspendForeground, interruptForeground, cwdRef, themeRef]);
 
   const openPalette = useCallback(() => {
     getRegistry().execute(buildContext(), { cmd: 'palette', args: [], flags: [] });
