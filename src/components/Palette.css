@@ -63,6 +63,10 @@
   text-overflow: ellipsis;
 }
 
+.palette-item-hash {
+  color: #666;
+}
+
 .palette-item-path {
   color: #666;
   font-size: 12px;

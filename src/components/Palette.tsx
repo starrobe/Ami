@@ -185,7 +185,10 @@ export default function Palette({ blogs, onOpen, onClose, onSuspend, onInterrupt
                   <span className="palette-item-path">{item.blog.path}</span>
                 </>
               ) : (
-                <span className="palette-item-title"># {item.tag}</span>
+                <span className="palette-item-title">
+                  <span className="palette-item-hash"># </span>
+                  {item.tag}
+                </span>
               )}
             </div>
           ))
