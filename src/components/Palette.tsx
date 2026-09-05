@@ -144,6 +144,7 @@ export default function Palette({ blogs, onOpen, onClose, onSuspend, onInterrupt
         break;
       case 'q':
         e.preventDefault();
+        e.stopPropagation();
         onClose();
         break;
     }
