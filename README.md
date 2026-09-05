@@ -44,6 +44,7 @@ npm test           # run tests
 - **Rich Markdown** with GFM tables & LaTeX math ($E=mc^2$)
 - **Image preview** for JPG/PNG/GIF
 - **Rich-content panel** — `q`/`Esc` close (focus returns to the terminal), `j`/`k` scroll, `G`/`gg` jump to bottom/top
+- **Search palette** — `palette` / `Ctrl+P`: browse blogs, full-text search, or tags; ↑/↓ + Enter to open a post
 - **Virtual filesystem** — drop `.md` files in `src/fs/content/`, auto-discovered
 - **Process/job control** — panels run as jobs: `Ctrl+Z` suspends, `jobs`/`fg`/`bg`/`kill` manage background jobs
 - **Configurable profile** in `src/config.ts`

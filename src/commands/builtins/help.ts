@@ -17,6 +17,7 @@ export function createHelpCommand(registry: CommandRegistry): CommandHandler {
     output += '  Ctrl+L   clear screen\r\n';
     output += '  Tab      autocomplete / cycle\r\n';
     output += '  Up/Down  command history\r\n';
+    output += '  Ctrl+P   open search palette\r\n';
     output += '\r\n';
     return output;
   };
