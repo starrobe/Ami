@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import type { Terminal as XTermType } from '@xterm/xterm';
-import type { DirNode, RichContent } from '../types';
+import type { DirNode, RichContent, CommandContext } from '../types';
 import { createInitialFS } from '../fs/filesystem';
 import { appVersion } from '../config';
 import { stringWidth } from '../utils/charWidth';
@@ -190,6 +190,24 @@ export function useTerminal() {
     return registryRef.current;
   }, [historyRef]);
 
+  const buildContext = useCallback((): CommandContext => {
+    return {
+      cwd: cwdRef.current,
+      fs: fsRef.current,
+      setCwd,
+      appendOutput,
+      manager: processManagerRef.current,
+      spawnPanel,
+      theme: themeRef.current,
+      setTheme,
+      termCols: xtermRef.current?.cols ?? 80,
+    };
+  }, [setCwd, appendOutput, spawnPanel, setTheme, cwdRef, themeRef]);
+
+  const openPalette = useCallback(() => {
+    getRegistry().execute(buildContext(), { cmd: 'palette', args: [], flags: [] });
+  }, [getRegistry, buildContext]);
+
   const executeCommand = useCallback((input: string) => {
     const term = xtermRef.current;
     if (!term) return;
@@ -209,18 +227,7 @@ export function useTerminal() {
 
     const registry = getRegistry();
 
-    // Build context using refs for current values
-    const ctx = {
-      cwd: cwdRef.current,
-      fs: fsRef.current,
-      setCwd,
-      appendOutput,
-      manager: processManagerRef.current,
-      spawnPanel,
-      theme: themeRef.current,
-      setTheme,
-      termCols: term.cols,
-    };
+    const ctx = buildContext();
 
     const result = registry.execute(ctx, parsed);
 
@@ -229,7 +236,7 @@ export function useTerminal() {
     }
 
     writePrompt();
-  }, [appendOutput, setCwd, setTheme, spawnPanel, writePrompt, getRegistry, historyRef, cwdRef, themeRef]);
+  }, [writePrompt, getRegistry, buildContext, historyRef]);
 
   const initTerminal = useCallback(async () => {
     const gen = ++initGenRef.current;
@@ -289,6 +296,7 @@ export function useTerminal() {
       suspendForeground,
       interruptForeground,
       showSuggestion,
+      openPalette,
     }));
 
     // Touch scroll with momentum (xterm.js lacks native touch scroll)
@@ -360,7 +368,7 @@ export function useTerminal() {
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [executeCommand, writePrompt, historyRef, cwdRef, showSuggestion, suspendForeground, interruptForeground]);
+  }, [executeCommand, writePrompt, historyRef, cwdRef, showSuggestion, suspendForeground, interruptForeground, openPalette]);
 
   return {
     containerRef,

@@ -62,6 +62,9 @@ export default function Terminal() {
   useEffect(() => {
     if (!richContent) return;
 
+    // The palette handles its own keyboard input; skip the panel scroll keys.
+    if (richContent.meta.interactive) return;
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'z') {
         e.preventDefault();
@@ -154,7 +157,9 @@ export default function Terminal() {
                     <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
                   )}
                 </span>
-                <span className="terminal-rich-status-hint">q / Esc 关闭</span>
+                <span className="terminal-rich-status-hint">
+                  {richContent.meta.interactive ? '↑/↓ 选择 · Enter 打开 · Esc 返回 · Tab 切换' : 'q / Esc 关闭'}
+                </span>
                 {richContent.meta.type === 'markdown' && (
                   <span className="terminal-rich-status-scroll">{scrollLabel}</span>
                 )}

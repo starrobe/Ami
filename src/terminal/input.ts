@@ -30,6 +30,7 @@ export interface InputHandlerDeps {
   suspendForeground: () => void;
   interruptForeground: () => void;
   showSuggestion: () => void;
+  openPalette: () => void;
 }
 
 /**
@@ -52,6 +53,7 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
     suspendForeground,
     interruptForeground,
     showSuggestion,
+    openPalette,
   } = deps;
 
   // --- Input editing helpers (only touch refs; stable across renders) ---
@@ -179,6 +181,12 @@ export function createInputHandler(deps: InputHandlerDeps): (data: string) => vo
       const lastSpace = before.lastIndexOf(' ');
       const deleteFrom = lastSpace === -1 ? 0 : lastSpace + 1;
       eraseRange(deleteFrom, pos);
+      return;
+    }
+
+    // Handle Ctrl+P (open the search palette)
+    if (data === '\x10') {
+      openPalette();
       return;
     }
 
