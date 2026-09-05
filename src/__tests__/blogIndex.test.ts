@@ -78,12 +78,12 @@ describe('searchBlogs', () => {
     expect(searchBlogs(blogs, 'alpha').map((b) => b.title)).toEqual(['Alpha']);
   });
 
-  it('matches content', () => {
-    expect(searchBlogs(blogs, 'second').map((b) => b.title)).toEqual(['Beta']);
+  it('ignores content (title only)', () => {
+    expect(searchBlogs(blogs, 'second').map((b) => b.title)).toEqual([]);
   });
 
-  it('matches content case-insensitively', () => {
-    expect(searchBlogs(blogs, 'SECOND').map((b) => b.title)).toEqual(['Beta']);
+  it('matches title substring case-insensitively', () => {
+    expect(searchBlogs(blogs, 'ALPH').map((b) => b.title)).toEqual(['Alpha']);
   });
 
   it('returns empty on no match', () => {
