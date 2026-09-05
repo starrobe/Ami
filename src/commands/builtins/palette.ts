@@ -5,9 +5,11 @@ import type { PanelProcess } from '../../process/panelProcess';
 import { listBlogs } from '../../fs/blogIndex';
 import { openMarkdownPanel } from '../openMarkdown';
 import Palette from '../../components/Palette';
+import { createSearchStore } from '../../components/searchStore';
 
 export const paletteCommand: CommandHandler = (ctx) => {
   const blogs = listBlogs(ctx.fs);
+  const search = createSearchStore();
 
   let proc: PanelProcess;
 
@@ -22,8 +24,9 @@ export const paletteCommand: CommandHandler = (ctx) => {
   };
 
   proc = ctx.spawnPanel('palette', {
-    node: React.createElement(Palette, { blogs, onOpen, onClose }),
+    node: React.createElement(Palette, { blogs, onOpen, onClose, search }),
     meta: { title: 'palette', type: 'palette', interactive: true },
+    search,
   });
   return '';
 };

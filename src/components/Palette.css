@@ -30,36 +30,6 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.palette-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  padding: 8px 10px;
-  border-top: 1px solid #30363d;
-  background: rgba(13, 17, 23, 0.6);
-}
-
-.palette-search-prompt {
-  color: #666;
-  font-size: 14px;
-}
-
-.palette-search-input {
-  flex: 1;
-  min-width: 0;
-  background: none;
-  border: none;
-  color: #e0e0e0;
-  font-family: inherit;
-  font-size: 14px;
-  outline: none;
-}
-
-.palette-search-input::placeholder {
-  color: #666;
-}
-
 .palette-list {
   flex: 1;
   min-height: 0;

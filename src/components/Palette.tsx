@@ -1,6 +1,7 @@
 // src/components/Palette.tsx
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { BlogInfo } from '../fs/blogIndex';
+import type { SearchStore } from '../types';
 import { listTags, searchBlogs } from '../fs/blogIndex';
 import './Palette.css';
 
@@ -19,19 +20,22 @@ interface PaletteProps {
   blogs: BlogInfo[];
   onOpen: (path: string) => void;
   onClose: () => void;
+  search: SearchStore;
 }
 
-export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
+export default function Palette({ blogs, onOpen, onClose, search }: PaletteProps) {
   const [mode, setMode] = useState<Mode>('blogs');
   const [selected, setSelected] = useState(0);
-  const [query, setQuery] = useState('');
   const [tag, setTag] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // The search query lives in the shared store (rendered in the status bar),
+  // not in local state.
+  const query = useSyncExternalStore(search.subscribe, search.getQuery);
 
   const tags = useMemo(() => listTags(blogs), [blogs]);
 
   const items = useMemo<Item[]>(() => {
-    // Blog mode lists all blogs, filtered live by the search input.
+    // Blog mode lists all blogs, filtered live by the status-bar search.
     if (mode === 'blogs') return searchBlogs(blogs, query).map((blog) => ({ kind: 'blog', blog }));
     // Tags mode: list tags, then drill into a tag's blogs.
     if (tag === null) return tags.map((t) => ({ kind: 'tag', tag: t }));
@@ -42,6 +46,7 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
     setMode(m);
     setSelected(0);
     setTag(null);
+    search.setActive(false);
   };
 
   const activate = (item: Item) => {
@@ -77,7 +82,11 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         break;
       case 'Escape':
         e.preventDefault();
-        if (mode === 'tags' && tag !== null) {
+        if (mode === 'blogs' && search.getActive()) {
+          // Clear the status-bar search and return to the plain list.
+          search.setActive(false);
+          search.setQuery('');
+        } else if (mode === 'tags' && tag !== null) {
           setTag(null);
           setSelected(0);
         } else {
@@ -89,10 +98,10 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         switchMode(MODES[(MODES.findIndex((x) => x.id === mode) + 1) % MODES.length].id);
         break;
       case '/':
-        // Press "/" to search: focus the blog-mode filter input.
+        // Press "/" to open the search input in the status bar.
         if (mode === 'blogs' && !isInput) {
           e.preventDefault();
-          inputRef.current?.focus();
+          search.setActive(true);
         }
         break;
       case '1':
@@ -152,22 +161,6 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
           ))
         )}
       </div>
-
-      {mode === 'blogs' && (
-        <div className="palette-search">
-          <span className="palette-search-prompt">/</span>
-          <input
-            ref={inputRef}
-            className="palette-search-input"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelected(0);
-            }}
-            placeholder="搜索博客…"
-          />
-        </div>
-      )}
     </div>
   );
 }

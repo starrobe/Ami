@@ -1,10 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTerminal } from './useTerminal';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { formatScrollPosition } from '../utils/scrollPosition';
+import type { SearchStore } from '../types';
 import './Terminal.css';
 
 const LINE_SCROLL = 40;
+
+// Fallback store for panels without an interactive search (markdown, image, …).
+const noopSearchStore: SearchStore = {
+  getQuery: () => '',
+  getActive: () => false,
+  setQuery: () => {},
+  setActive: () => {},
+  subscribe: () => () => {},
+};
 
 export default function Terminal() {
   const { containerRef, initTerminal, manager, suspendForeground, interruptForeground } = useTerminal();
@@ -13,6 +23,16 @@ export default function Terminal() {
   const [scrollLabel, setScrollLabel] = useState('Top');
 
   const richContent = manager.getForeground()?.view() ?? null;
+
+  const search = richContent?.search ?? noopSearchStore;
+  const searchActive = useSyncExternalStore(search.subscribe, search.getActive);
+  const searchQuery = useSyncExternalStore(search.subscribe, search.getQuery);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Focus the status-bar search input the moment "/" opens it.
+  useEffect(() => {
+    if (searchActive) searchInputRef.current?.focus();
+  }, [searchActive]);
 
   useEffect(() => {
     let disposed = false;
@@ -151,17 +171,32 @@ export default function Terminal() {
                 {richContent.node}
               </div>
               <div className="terminal-rich-status">
-                <span className="terminal-rich-status-left">
-                  {richContent.meta.title}
-                  {richContent.meta.type && (
-                    <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
-                  )}
-                </span>
-                <span className="terminal-rich-status-hint">
-                  {richContent.meta.interactive ? '↑/↓ 选择 · / 搜索 · Enter 打开 · Esc 返回 · Tab 切换' : 'q / Esc 关闭'}
-                </span>
-                {richContent.meta.type === 'markdown' && (
-                  <span className="terminal-rich-status-scroll">{scrollLabel}</span>
+                {searchActive ? (
+                  <>
+                    <span className="terminal-rich-status-prompt">/</span>
+                    <input
+                      ref={searchInputRef}
+                      className="terminal-rich-status-search"
+                      value={searchQuery}
+                      onChange={(e) => search.setQuery(e.target.value)}
+                      placeholder="搜索…"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span className="terminal-rich-status-left">
+                      {richContent.meta.title}
+                      {richContent.meta.type && (
+                        <span className="terminal-rich-status-type">[{richContent.meta.type}]</span>
+                      )}
+                    </span>
+                    <span className="terminal-rich-status-hint">
+                      {richContent.meta.interactive ? '↑/↓ 选择 · / 搜索 · Enter 打开 · Esc 返回 · Tab 切换' : 'q / Esc 关闭'}
+                    </span>
+                    {richContent.meta.type === 'markdown' && (
+                      <span className="terminal-rich-status-scroll">{scrollLabel}</span>
+                    )}
+                  </>
                 )}
               </div>
             </div>

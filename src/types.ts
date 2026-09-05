@@ -23,9 +23,21 @@ export interface RichContentMeta {
   interactive?: boolean;
 }
 
+// Shared search state between an interactive panel's list (e.g. the palette)
+// and the terminal's status bar, which hosts the search input. Backed by a
+// tiny external store so both React roots read the same reactive value.
+export interface SearchStore {
+  getQuery: () => string;
+  getActive: () => boolean;
+  setQuery: (q: string) => void;
+  setActive: (a: boolean) => void;
+  subscribe: (fn: () => void) => () => void;
+}
+
 export interface RichContent {
   node: ReactNode;
   meta: RichContentMeta;
+  search?: SearchStore;
 }
 
 export interface ParsedCommand {
