@@ -59,6 +59,10 @@ describe('listBlogs', () => {
     const blogs = listBlogs(makeFs());
     expect(blogs.find((b) => b.path.endsWith('c.md'))!.title).toBe('c');
   });
+
+  it('returns empty when blog dir is missing', () => {
+    expect(listBlogs({ type: 'dir', children: {} })).toEqual([]);
+  });
 });
 
 describe('listTags', () => {
@@ -76,6 +80,10 @@ describe('searchBlogs', () => {
 
   it('matches content', () => {
     expect(searchBlogs(blogs, 'second').map((b) => b.title)).toEqual(['Beta']);
+  });
+
+  it('matches content case-insensitively', () => {
+    expect(searchBlogs(blogs, 'SECOND').map((b) => b.title)).toEqual(['Beta']);
   });
 
   it('returns empty on no match', () => {

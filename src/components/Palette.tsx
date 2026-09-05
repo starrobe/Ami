@@ -42,6 +42,8 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   const switchMode = (m: Mode) => {
     setMode(m);
     setSelected(0);
+    setQuery('');
+    setTag(null);
     if (m === 'search') requestAnimationFrame(() => inputRef.current?.focus());
     else inputRef.current?.blur();
   };
@@ -57,6 +59,7 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   // Latest-handler-in-ref so the window listener never goes stale.
   const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
   keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (e.isComposing || e.keyCode === 229) return;
     const isInput = (e.target as HTMLElement)?.tagName === 'INPUT';
     // While the search input is focused, don't hijack the 1/2/3 mode keys
     // so the digits reach the input.

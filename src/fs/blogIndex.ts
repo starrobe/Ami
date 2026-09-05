@@ -58,7 +58,7 @@ export function listTags(blogs: BlogInfo[]): string[] {
 
 export function searchBlogs(blogs: BlogInfo[], query: string): BlogInfo[] {
   const q = query.toLowerCase();
-  if (q.length === 0) return blogs;
+  if (q.length === 0) return [...blogs];
   return blogs.filter(
     (b) => b.title.toLowerCase().includes(q) || b.content.toLowerCase().includes(q)
   );
