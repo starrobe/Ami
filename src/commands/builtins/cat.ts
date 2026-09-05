@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CommandHandler } from '../../types';
 import { resolvePath, getNode } from '../../fs/filesystem';
+import { openMarkdownPanel } from '../openMarkdown';
 
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico'];
 
@@ -37,22 +38,7 @@ export const catCommand: CommandHandler = (ctx, parsed) => {
 
   // .md files → rich Markdown rendering (lazy loaded)
   if (target.endsWith('.md')) {
-    const content = node.content;
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-    const body = frontmatterMatch ? frontmatterMatch[2] : content;
-
-    // Show loading placeholder immediately
-    const proc = ctx.spawnPanel(`cat ${target}`, {
-      node: React.createElement('div', { className: 'markdown-loading' }, 'Loading...'),
-      meta: { title: target, type: 'markdown' },
-    });
-
-    import('../../output/MarkdownView').then(({ default: MarkdownView }) => {
-      proc.setView({
-        node: React.createElement(MarkdownView, { content: body }),
-        meta: { title: target, type: 'markdown' },
-      });
-    });
+    openMarkdownPanel(ctx, `cat ${target}`, target, node.content);
     return '';
   }
 
