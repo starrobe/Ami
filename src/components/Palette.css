@@ -1,0 +1,94 @@
+/* src/components/Palette.css */
+.palette {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+}
+
+.palette-tabs {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #30363d;
+}
+
+.palette-tab {
+  background: none;
+  border: none;
+  color: #888;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.palette-tab-active {
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.palette-input {
+  margin: 12px 0;
+  padding: 8px 10px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.palette-input:focus {
+  border-color: #58a6ff;
+}
+
+.palette-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.palette-list::-webkit-scrollbar {
+  display: none;
+}
+
+.palette-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.palette-item-selected {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.palette-item-title {
+  color: #e0e0e0;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-item-path {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-empty {
+  color: #666;
+  padding: 12px 10px;
+  font-size: 14px;
+}
