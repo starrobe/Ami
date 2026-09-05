@@ -171,6 +171,10 @@ export function useTerminal() {
     const term = xtermRef.current;
     if (!term) return;
     term.options.cursorBlink = !panelOpen;
+    // Clicking inside the panel blurs the xterm textarea. The q/Esc close path
+    // (SIGTERM) never calls writePrompt(), so restore focus here once the panel
+    // is gone — otherwise the user must click back into the terminal to type.
+    if (!panelOpen) term.focus();
   }, [panelOpen]);
 
   // Cache the populated registry

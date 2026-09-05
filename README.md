@@ -1,6 +1,6 @@
 # Ami Terminal
 
-A personal terminal-style website. Type commands, browse files, read blog posts — just like a real Linux terminal.
+A personal terminal-style website. Type commands, browse files, read blog posts.
 
 ![Ami Terminal screenshot](src/fs/content/demo.png)
 
@@ -43,6 +43,7 @@ npm test           # run tests
 - **Inline cursor movement** (← → arrows, mid-line editing)
 - **Rich Markdown** with GFM tables & LaTeX math ($E=mc^2$)
 - **Image preview** for JPG/PNG/GIF
+- **Rich-content panel** — `q`/`Esc` close (focus returns to the terminal), `j`/`k` scroll, `G`/`gg` jump to bottom/top
 - **Virtual filesystem** — drop `.md` files in `src/fs/content/`, auto-discovered
 - **Process/job control** — panels run as jobs: `Ctrl+Z` suspends, `jobs`/`fg`/`bg`/`kill` manage background jobs
 - **Configurable profile** in `src/config.ts`
