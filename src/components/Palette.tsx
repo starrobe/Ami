@@ -57,6 +57,12 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
   // Latest-handler-in-ref so the window listener never goes stale.
   const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
   keyHandlerRef.current = (e: KeyboardEvent) => {
+    const isInput = (e.target as HTMLElement)?.tagName === 'INPUT';
+    // While the search input is focused, don't hijack the 1/2/3 mode keys
+    // so the digits reach the input.
+    if (isInput && (e.key === '1' || e.key === '2' || e.key === '3')) return;
+    const clamped = Math.max(0, Math.min(items.length - 1, selected));
+
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
@@ -64,11 +70,11 @@ export default function Palette({ blogs, onOpen, onClose }: PaletteProps) {
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setSelected((s) => Math.min(items.length - 1, s + 1));
+        setSelected((s) => Math.max(0, Math.min(items.length - 1, s + 1)));
         break;
       case 'Enter':
         e.preventDefault();
-        if (items[selected]) activate(items[selected]);
+        if (items[clamped]) activate(items[clamped]);
         break;
       case 'Escape':
         e.preventDefault();
