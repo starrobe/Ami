@@ -179,7 +179,6 @@ export default function Terminal() {
                       className="terminal-rich-status-search"
                       value={searchQuery}
                       onChange={(e) => search.setQuery(e.target.value)}
-                      placeholder="搜索…"
                     />
                   </>
                 ) : (

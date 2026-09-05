@@ -199,10 +199,8 @@ html, body, #root {
   font-family: inherit;
   font-size: 13px;
   outline: none;
-}
-
-.terminal-rich-status-search::placeholder {
-  color: #666;
+  caret-color: #ffffff;
+  caret-shape: block;
 }
 
 .boot-screen {
