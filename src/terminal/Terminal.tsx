@@ -5,7 +5,7 @@ import { formatScrollPosition } from '../utils/scrollPosition';
 import type { SearchStore } from '../types';
 import './Terminal.css';
 
-const LINE_SCROLL = 40;
+const SCROLL_SPEED = 6; // px per animation frame (~360px/s)
 
 // Fallback store for panels without an interactive search (markdown, image, …).
 const noopSearchStore: SearchStore = {
@@ -20,6 +20,8 @@ export default function Terminal() {
   const { containerRef, initTerminal, manager, suspendForeground, interruptForeground } = useTerminal();
   const richBodyRef = useRef<HTMLDivElement | null>(null);
   const pendingGRef = useRef(false);
+  const scrollDirRef = useRef<0 | 1 | -1>(0);
+  const scrollRafRef = useRef(0);
   const [scrollLabel, setScrollLabel] = useState('Top');
 
   const richContent = manager.getForeground()?.view() ?? null;
@@ -68,9 +70,25 @@ export default function Terminal() {
     el?.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, []);
 
-  const scrollBy = useCallback((delta: number) => {
+  const scrollStep = useCallback(() => {
     const el = richBodyRef.current;
-    if (el) el.scrollTop += delta;
+    if (!el || scrollDirRef.current === 0) {
+      scrollRafRef.current = 0;
+      return;
+    }
+    el.scrollTop += scrollDirRef.current * SCROLL_SPEED;
+    scrollRafRef.current = requestAnimationFrame(scrollStep);
+  }, []);
+
+  const startScroll = useCallback((dir: 1 | -1) => {
+    scrollDirRef.current = dir;
+    if (!scrollRafRef.current) {
+      scrollRafRef.current = requestAnimationFrame(scrollStep);
+    }
+  }, [scrollStep]);
+
+  const stopScroll = useCallback(() => {
+    scrollDirRef.current = 0;
   }, []);
 
   const terminatePanel = useCallback(() => {
@@ -104,6 +122,7 @@ export default function Terminal() {
         e.preventDefault();
         e.stopPropagation();
         pendingGRef.current = false;
+        stopScroll();
         terminatePanel();
         return;
       }
@@ -111,6 +130,7 @@ export default function Terminal() {
         e.preventDefault();
         e.stopPropagation();
         pendingGRef.current = false;
+        stopScroll();
         scrollToBottom();
         return;
       }
@@ -118,14 +138,14 @@ export default function Terminal() {
         e.preventDefault();
         e.stopPropagation();
         pendingGRef.current = false;
-        scrollBy(LINE_SCROLL);
+        startScroll(1);
         return;
       }
       if (e.key === 'k') {
         e.preventDefault();
         e.stopPropagation();
         pendingGRef.current = false;
-        scrollBy(-LINE_SCROLL);
+        startScroll(-1);
         return;
       }
       if (e.key === 'g') {
@@ -133,6 +153,7 @@ export default function Terminal() {
         e.stopPropagation();
         if (pendingGRef.current) {
           pendingGRef.current = false;
+          stopScroll();
           scrollToTop();
         } else {
           pendingGRef.current = true;
@@ -142,9 +163,18 @@ export default function Terminal() {
       pendingGRef.current = false;
     };
 
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'j' || e.key === 'k') stopScroll();
+    };
+
     window.addEventListener('keydown', onKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
-  }, [richContent, scrollToBottom, scrollToTop, scrollBy, terminatePanel, suspendForeground, interruptForeground]);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, { capture: true });
+      window.removeEventListener('keyup', onKeyUp);
+      stopScroll();
+    };
+  }, [richContent, scrollToBottom, scrollToTop, startScroll, stopScroll, terminatePanel, suspendForeground, interruptForeground]);
 
   return (
     <div className="terminal-shell">
