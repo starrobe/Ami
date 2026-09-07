@@ -44,6 +44,30 @@
   line-height: 1.25;
 }
 
+.markdown-view .md-h4 {
+  color: var(--fg-deep);
+  font-weight: 600;
+  font-size: 1em;
+  margin: 24px 0 16px 0;
+  line-height: 1.25;
+}
+
+.markdown-view .md-h5 {
+  color: var(--fg-deep);
+  font-weight: 600;
+  font-size: 0.875em;
+  margin: 24px 0 16px 0;
+  line-height: 1.25;
+}
+
+.markdown-view .md-h6 {
+  color: var(--fg-light);
+  font-weight: 600;
+  font-size: 0.85em;
+  margin: 24px 0 16px 0;
+  line-height: 1.25;
+}
+
 .markdown-view .md-p {
   margin: 0 0 16px 0;
 }
