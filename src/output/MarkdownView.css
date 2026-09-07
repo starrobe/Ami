@@ -118,19 +118,27 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  padding: 4px 8px;
-  font-size: 12px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
   color: var(--fg-light);
-  background: rgba(110, 118, 129, 0.4);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
 }
 
 .markdown-view .md-code-copy:hover {
+  opacity: 1;
   color: var(--fg);
-  background: rgba(110, 118, 129, 0.6);
+}
+
+.markdown-view .md-code-copy.copied {
+  opacity: 1;
+  color: #3fb950;
 }
 
 .markdown-view .md-link {
