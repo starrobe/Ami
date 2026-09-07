@@ -24,13 +24,14 @@ export default function MarkdownView({ content }: Props) {
           ol: ({ children }) => <ol className="md-ol">{children}</ol>,
           li: ({ children }) => <li className="md-li">{children}</li>,
           code: ({ className, children }) => {
-            const isInline = !className;
+            const isInline = !/language-/.test(className || '');
             return isInline ? (
               <code className="md-code-inline">{children}</code>
             ) : (
-              <pre className="md-code-block"><code>{children}</code></pre>
+              <code className={className}>{children}</code>
             );
           },
+          pre: ({ children }) => <pre className="md-code-block">{children}</pre>,
           a: ({ href, children }) => (
             <a className="md-link" href={href} target="_blank" rel="noopener noreferrer">
               {children}
