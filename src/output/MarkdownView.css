@@ -59,13 +59,14 @@
 }
 
 .markdown-view .md-code-block {
-  background: #1a1a1a;
-  border: 1px solid #444;
+  background: #0e0e0e;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 0.857em 1.143em;
   overflow-x: auto;
   margin: 12px 0;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+  font-family: 'DM Mono', 'Input Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', 'PingFang SC', monospace;
+  font-size: 0.92em;
+  line-height: 1.4;
 }
 
 .markdown-view .md-code-block code {
