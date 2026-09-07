@@ -60,12 +60,12 @@ export default function Terminal() {
   }, [richContent]);
 
   const scrollToTop = useCallback(() => {
-    if (richBodyRef.current) richBodyRef.current.scrollTop = 0;
+    richBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const scrollToBottom = useCallback(() => {
     const el = richBodyRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    el?.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, []);
 
   const scrollBy = useCallback((delta: number) => {
