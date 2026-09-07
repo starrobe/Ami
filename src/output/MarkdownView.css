@@ -95,6 +95,7 @@
 }
 
 .markdown-view .md-code-block {
+  position: relative;
   background: #161b22;
   border-radius: 6px;
   padding: 16px;
@@ -111,6 +112,25 @@
   padding: 0;
   border-radius: 0;
   font-size: inherit;
+}
+
+.markdown-view .md-code-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--fg-light);
+  background: rgba(110, 118, 129, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.markdown-view .md-code-copy:hover {
+  color: var(--fg);
+  background: rgba(110, 118, 129, 0.6);
 }
 
 .markdown-view .md-link {

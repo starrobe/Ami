@@ -1,3 +1,5 @@
+import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -7,6 +9,31 @@ import './MarkdownView.css';
 
 interface Props {
   content: string;
+}
+
+function CodeBlock({ children }: { children?: ReactNode }) {
+  const preRef = useRef<HTMLPreElement | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    const text = preRef.current?.querySelector('code')?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard unavailable (e.g. non-HTTPS) — silently ignore.
+    }
+  };
+
+  return (
+    <pre ref={preRef} className="md-code-block">
+      <button type="button" className="md-code-copy" onClick={copy}>
+        {copied ? '已复制' : '复制'}
+      </button>
+      {children}
+    </pre>
+  );
 }
 
 export default function MarkdownView({ content }: Props) {
@@ -34,7 +61,7 @@ export default function MarkdownView({ content }: Props) {
               <code className={className}>{children}</code>
             );
           },
-          pre: ({ children }) => <pre className="md-code-block">{children}</pre>,
+          pre: CodeBlock,
           a: ({ href, children }) => (
             <a className="md-link" href={href} target="_blank" rel="noopener noreferrer">
               {children}
